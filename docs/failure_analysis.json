@@ -1,0 +1,1962 @@
+[
+  {
+    "set": "public",
+    "n": 10,
+    "misses_at_3": 0,
+    "misses_at_5": 0,
+    "rank_distribution": {
+      "1": 9,
+      "3": 1
+    },
+    "rows": [
+      {
+        "id": "PUB-01",
+        "query": "We are a small enterprise manufacturing 33 Grade Ordinary Portland Cement. Which BIS standard covers the chemical and physical requirements for our product?",
+        "expected": [
+          "IS 269: 1989"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.633,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 269: 1989",
+            "title": "ORDINARY PORTLAND CEMENT, 33 GRADE",
+            "rerank_score": 0.7309,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 455: 1989",
+            "title": "PORTLAND SLAG CEMENT",
+            "rerank_score": 0.7248,
+            "rrf_score": 0.0147,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 8043: 1991",
+            "title": "HYDROPHOBIC PORTLAND CEMENT",
+            "rerank_score": 0.7241,
+            "rrf_score": 0.0313,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 1489 (Part 1): 1991",
+            "title": "PORTLAND POZZOLANA CEMENT",
+            "rerank_score": 0.7101,
+            "rrf_score": 0.0263,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 8112: 1989",
+            "title": "43 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.6888,
+            "rrf_score": 0.0317,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-02",
+        "query": "I need to comply with the regulations for coarse and fine aggregates derived from natural sources intended for use in structural concrete.",
+        "expected": [
+          "IS 383: 1970"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.791,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 383: 1970",
+            "title": "COARSE AND FINE AGGREGATES FROM NATURAL",
+            "rerank_score": 0.7285,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 3068: 1986",
+            "title": "BROKEN BRICK (BURNT CLAY) COARSE",
+            "rerank_score": 0.5864,
+            "rrf_score": 0.031,
+            "category_boost": 0.1,
+            "categories": [
+              "aggregate",
+              "brick",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2686: 1977",
+            "title": "CINDER AS FINE AGGREGATES FOR",
+            "rerank_score": 0.5863,
+            "rrf_score": 0.031,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 9142: 1979",
+            "title": "ARTIFICIAL LIGHTWEIGHT AGGREGATES FOR",
+            "rerank_score": 0.5753,
+            "rrf_score": 0.0297,
+            "category_boost": 0.1,
+            "categories": [
+              "aggregate",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 3466: 1988",
+            "title": "MASONRY CEMENT",
+            "rerank_score": 0.5611,
+            "rrf_score": 0.027,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-03",
+        "query": "What is the official specification for manufacturing precast concrete pipes, both with and without reinforcement, for water mains?",
+        "expected": [
+          "IS 458: 2003"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.914,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 458: 2003",
+            "title": "PRECAST CONCRETE PIPES (WITH AND",
+            "rerank_score": 0.7273,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 5820: 1970",
+            "title": "PRECAST CONCRETE CABLE COVERS",
+            "rerank_score": 0.6414,
+            "rrf_score": 0.0315,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 14201: 1994",
+            "title": "PRECAST REINFORCED CONCRETE CHANNEL",
+            "rerank_score": 0.5733,
+            "rrf_score": 0.0152,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 7319: 1974",
+            "title": "PERFORATED CONCRETE PIPES",
+            "rerank_score": 0.5571,
+            "rrf_score": 0.0161,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 784: 2001",
+            "title": "PRESTRESSED CONCRETE PIPES",
+            "rerank_score": 0.552,
+            "rrf_score": 0.0159,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete",
+              "pipe",
+              "steel"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-04",
+        "query": "Our company is shifting to manufacturing hollow and solid lightweight concrete masonry blocks. What standard outlines the dimensions and physical requirements?",
+        "expected": [
+          "IS 2185 (Part 2): 1983"
+        ],
+        "expected_rank": 3,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.768,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 5751: 1984",
+            "title": "PRECAST  CONCRETE COPING BLOCKS",
+            "rerank_score": 0.6745,
+            "rrf_score": 0.0286,
+            "category_boost": 0.1,
+            "categories": [
+              "block",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 2185 (Part 1): 1979",
+            "title": "CONCRETE MASONRY UNITS",
+            "rerank_score": 0.6626,
+            "rrf_score": 0.032,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2185 (Part 2): 1983",
+            "title": "CONCRETE MASONRY UNITS",
+            "rerank_score": 0.6515,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 12440: 1988",
+            "title": "PRECAST CONCRETE STONE MASONRY BLOCKS",
+            "rerank_score": 0.5637,
+            "rrf_score": 0.0315,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 2185 (Part 3): 1984",
+            "title": "CONCRETE MASONRY UNITS",
+            "rerank_score": 0.5486,
+            "rrf_score": 0.0308,
+            "category_boost": 0.1,
+            "categories": [
+              "asbestos",
+              "brick",
+              "cement",
+              "concrete",
+              "insulation"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-05",
+        "query": "Looking for the standard detailing corrugated and semi-corrugated asbestos cement sheets used for roofing and cladding.",
+        "expected": [
+          "IS 459: 1992"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.04,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 459: 1992",
+            "title": "CORRUGATED AND SEMI-CORRUGATED ASBESTOS",
+            "rerank_score": 0.7296,
+            "rrf_score": 0.0328,
+            "category_boost": 0.2,
+            "categories": [
+              "asbestos",
+              "cement",
+              "roofing"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 14871: 2000",
+            "title": "PRODUCTS IN FIBRE REINFORCED",
+            "rerank_score": 0.7274,
+            "rrf_score": 0.03,
+            "category_boost": 0.2,
+            "categories": [
+              "asbestos",
+              "cement",
+              "roofing"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 1626: 1984",
+            "title": "ASBESTOS CEMENT BUILDING",
+            "rerank_score": 0.727,
+            "rrf_score": 0.032,
+            "category_boost": 0.2,
+            "categories": [
+              "asbestos",
+              "cement",
+              "roofing"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 14862: 2000",
+            "title": "FIBRE CEMENT FLAT SHEETS",
+            "rerank_score": 0.6887,
+            "rrf_score": 0.0289,
+            "category_boost": 0.2,
+            "categories": [
+              "asbestos",
+              "brick",
+              "cement",
+              "insulation",
+              "lime_gypsum",
+              "roofing",
+              "wood"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 10388: 1982",
+            "title": "CORRUGATED COIR, WOODWOOL,",
+            "rerank_score": 0.6835,
+            "rrf_score": 0.029,
+            "category_boost": 0.2,
+            "categories": [
+              "cement",
+              "roofing",
+              "wood"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-06",
+        "query": "What is the Indian Standard covering the manufacture, chemical, and physical requirements for Portland slag cement?",
+        "expected": [
+          "IS 455: 1989"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.791,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 455: 1989",
+            "title": "PORTLAND SLAG CEMENT",
+            "rerank_score": 0.7309,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 12269: 1987",
+            "title": "53 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.7267,
+            "rrf_score": 0.0303,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 8112: 1989",
+            "title": "43 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.7261,
+            "rrf_score": 0.031,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 269: 1989",
+            "title": "ORDINARY PORTLAND CEMENT, 33 GRADE",
+            "rerank_score": 0.7255,
+            "rrf_score": 0.0296,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 1489 (Part 1): 1991",
+            "title": "PORTLAND POZZOLANA CEMENT",
+            "rerank_score": 0.7249,
+            "rrf_score": 0.0296,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-07",
+        "query": "We are setting up a plant to produce Portland pozzolana cement that is calcined clay based. What is the applicable standard?",
+        "expected": [
+          "IS 1489 (Part 2): 1991"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.832,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 1489 (Part 2): 1991",
+            "title": "PORTLAND POZZOLANA CEMENT",
+            "rerank_score": 0.7099,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 1489 (Part 1): 1991",
+            "title": "PORTLAND POZZOLANA CEMENT",
+            "rerank_score": 0.6114,
+            "rrf_score": 0.0323,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 12330: 1988",
+            "title": "SULPHATE RESISTING PORTLAND CEMENT",
+            "rerank_score": 0.5362,
+            "rrf_score": 0.0317,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 10360: 1982",
+            "title": "LIME-POZZOLANA CONCRETE",
+            "rerank_score": 0.5071,
+            "rrf_score": 0.0295,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 455: 1989",
+            "title": "PORTLAND SLAG CEMENT",
+            "rerank_score": 0.5049,
+            "rrf_score": 0.0279,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-08",
+        "query": "Which standard applies to masonry cement used for general purposes where mortars for masonry are required, but not intended for structural concrete?",
+        "expected": [
+          "IS 3466: 1988"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.406,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 3466: 1988",
+            "title": "MASONRY CEMENT",
+            "rerank_score": 0.731,
+            "rrf_score": 0.0328,
+            "category_boost": 0.2,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 12330: 1988",
+            "title": "SULPHATE RESISTING PORTLAND CEMENT",
+            "rerank_score": 0.5268,
+            "rrf_score": 0.0255,
+            "category_boost": 0.2,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2185 (Part 3): 1984",
+            "title": "CONCRETE MASONRY UNITS",
+            "rerank_score": 0.5184,
+            "rrf_score": 0.0282,
+            "category_boost": 0.2,
+            "categories": [
+              "asbestos",
+              "brick",
+              "cement",
+              "concrete",
+              "insulation"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 3709: 1966",
+            "title": "MASTIC CEMENT FOR BEDDING OF",
+            "rerank_score": 0.5144,
+            "rrf_score": 0.0287,
+            "category_boost": 0.2,
+            "categories": [
+              "cement",
+              "concrete",
+              "paint"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 1237: 1980",
+            "title": "CEMENT CONCRETE FLOORING TILES",
+            "rerank_score": 0.5067,
+            "rrf_score": 0.0137,
+            "category_boost": 0.2,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-09",
+        "query": "Looking for the standard that details the composition, manufacture, and testing of supersulphated cement, particularly for marine works or aggressive water conditions.",
+        "expected": [
+          "IS 6909: 1990"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.015,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 6909: 1990",
+            "title": "SUPERSULPHATED CEMENT",
+            "rerank_score": 0.7278,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 12330: 1988",
+            "title": "SULPHATE RESISTING PORTLAND CEMENT",
+            "rerank_score": 0.6989,
+            "rrf_score": 0.0323,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2645: 2003",
+            "title": "INTEGRAL CEMENT WATER-PROOFING",
+            "rerank_score": 0.5195,
+            "rrf_score": 0.0139,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 14182: 1994",
+            "title": "SOLVENT CEMENT FOR USE WITH UNPLASTICIZED",
+            "rerank_score": 0.5153,
+            "rrf_score": 0.0282,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "pipe"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 455: 1989",
+            "title": "PORTLAND SLAG CEMENT",
+            "rerank_score": 0.5138,
+            "rrf_score": 0.0154,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "PUB-10",
+        "query": "Our company manufactures White Portland cement for architectural and decorative purposes. Which standard governs its physical and chemical requirements?",
+        "expected": [
+          "IS 8042: 1989"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.799,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 8042: 1989",
+            "title": "WHITE  PORTLAND CEMENT",
+            "rerank_score": 0.73,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 269: 1989",
+            "title": "ORDINARY PORTLAND CEMENT, 33 GRADE",
+            "rerank_score": 0.7055,
+            "rrf_score": 0.0303,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 455: 1989",
+            "title": "PORTLAND SLAG CEMENT",
+            "rerank_score": 0.7053,
+            "rrf_score": 0.0294,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 8112: 1989",
+            "title": "43 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.6978,
+            "rrf_score": 0.0308,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 12269: 1987",
+            "title": "53 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.6888,
+            "rrf_score": 0.0296,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "set": "bootstrap",
+    "n": 18,
+    "misses_at_3": 2,
+    "misses_at_5": 1,
+    "rank_distribution": {
+      "1": 16,
+      "0": 1,
+      "4": 1
+    },
+    "rows": [
+      {
+        "id": "BS-001",
+        "query": "Namaste! We make marble tiles for homes and offices. For BIS certification, what kind of tests will our marble need to pass to show it's good quality?",
+        "expected": [
+          "IS 1130: 1969"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.892,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 1130: 1969",
+            "title": "MARBLE  (BLOCKS, SLABS AND TILES)",
+            "rerank_score": 0.5034,
+            "rrf_score": 0.0328,
+            "category_boost": 0.0,
+            "categories": [
+              "block"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 13756: 1993",
+            "title": "DUST – PRESSED CERAMIC TILES WITH LOW",
+            "rerank_score": 0.501,
+            "rrf_score": 0.0141,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 13755: 1993",
+            "title": "DUST– PRESSED CERAMIC TILES",
+            "rerank_score": 0.5009,
+            "rrf_score": 0.0274,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 13754: 1993",
+            "title": "DUST – PRESSED CERAMIC TILES WITH",
+            "rerank_score": 0.5006,
+            "rrf_score": 0.0295,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 13753: 1993",
+            "title": "DUST– PRESSED CERAMIC TILES WITH WATER",
+            "rerank_score": 0.5005,
+            "rrf_score": 0.0149,
+            "category_boost": 0.0,
+            "categories": []
+          }
+        ]
+      },
+      {
+        "id": "BS-002",
+        "query": "For this supersulphated cement, what specific tests will our batch need to undergo to get the quality mark?",
+        "expected": [
+          "IS 6909: 1990"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.857,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 6909: 1990",
+            "title": "SUPERSULPHATED CEMENT",
+            "rerank_score": 0.5728,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 12330: 1988",
+            "title": "SULPHATE RESISTING PORTLAND CEMENT",
+            "rerank_score": 0.5725,
+            "rrf_score": 0.032,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 14871: 2000",
+            "title": "PRODUCTS IN FIBRE REINFORCED",
+            "rerank_score": 0.5034,
+            "rrf_score": 0.0265,
+            "category_boost": 0.1,
+            "categories": [
+              "asbestos",
+              "cement",
+              "roofing"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 2096: 1992",
+            "title": "ASBESTOS CEMENT FLAT SHEETS",
+            "rerank_score": 0.5009,
+            "rrf_score": 0.0156,
+            "category_boost": 0.1,
+            "categories": [
+              "asbestos",
+              "cement"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 6452: 1989",
+            "title": "HIGH ALUMINA CEMENT FOR STRUCTURAL USE",
+            "rerank_score": 0.5006,
+            "rrf_score": 0.0156,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-003",
+        "query": "For our M30 screws, what kind of testing will be involved to meet the quality grade requirements?",
+        "expected": [
+          "IS 1364 (Part 2): 2002"
+        ],
+        "expected_rank": null,
+        "miss@3": true,
+        "miss@5": true,
+        "latency_s": 0.76,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 1366: 2002",
+            "title": "ISO 1207 - 1992 SLOTTED",
+            "rerank_score": 0.5005,
+            "rrf_score": 0.0291,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 3121: 1981",
+            "title": "RIGGING SCREWS AND STRETCHING SCREWS",
+            "rerank_score": 0.5005,
+            "rrf_score": 0.0296,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2687: 1991",
+            "title": "CAP NUTS",
+            "rerank_score": 0.5004,
+            "rrf_score": 0.0147,
+            "category_boost": 0.0,
+            "categories": [
+              "lock_hardware",
+              "steel"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 1363 (Part 2): 2002",
+            "title": "ISO 4018 : 1999",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.031,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 2016: 1967",
+            "title": "PLAIN WASHERS",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0154,
+            "category_boost": 0.0,
+            "categories": []
+          }
+        ]
+      },
+      {
+        "id": "BS-004",
+        "query": "For our mortice locks, what kind of testing will we need to do to get the BIS certification, especially for the locking mechanism and durability?",
+        "expected": [
+          "IS 2209: 1976"
+        ],
+        "expected_rank": 4,
+        "miss@3": true,
+        "miss@5": false,
+        "latency_s": 1.358,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 7540: 1974",
+            "title": "MORTICE DEAD  LOCKS",
+            "rerank_score": 0.5122,
+            "rrf_score": 0.0313,
+            "category_boost": 0.1,
+            "categories": [
+              "lock_hardware"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 8760: 1978",
+            "title": "MORTICE  SLIDING  DOOR LOCKS",
+            "rerank_score": 0.5075,
+            "rrf_score": 0.0323,
+            "category_boost": 0.1,
+            "categories": [
+              "lock_hardware"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 4992: 1975",
+            "title": "DOOR HANDLES FOR MORTICE LOCKS",
+            "rerank_score": 0.502,
+            "rrf_score": 0.032,
+            "category_boost": 0.1,
+            "categories": [
+              "lock_hardware"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 2209: 1976",
+            "title": "MORTICE LOCKS (VERTICAL TYPE)",
+            "rerank_score": 0.5019,
+            "rrf_score": 0.031,
+            "category_boost": 0.1,
+            "categories": [
+              "lock_hardware"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 6607: 1972",
+            "title": "REBATED MORTICE LOCKS (VERTICAL TYPE)",
+            "rerank_score": 0.5011,
+            "rrf_score": 0.0318,
+            "category_boost": 0.1,
+            "categories": [
+              "lock_hardware"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-005",
+        "query": "For these HDF panel doors, what kind of tests will our factory need to perform to ensure we meet the quality requirements?",
+        "expected": [
+          "IS 15380: 2003"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.41,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 15380: 2003",
+            "title": "MOULDED RAISED HIGH DENSITY FIBRE (HDF)",
+            "rerank_score": 0.6681,
+            "rrf_score": 0.0328,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 2202 (Part 2): 1983",
+            "title": "WOODEN FLUSH DOOR SHUTTERS",
+            "rerank_score": 0.5008,
+            "rrf_score": 0.0156,
+            "category_boost": 0.0,
+            "categories": [
+              "wood"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2191 (Part 2): 1983",
+            "title": "WOODEN FLUSH DOOR SHUTTERS",
+            "rerank_score": 0.5006,
+            "rrf_score": 0.0147,
+            "category_boost": 0.0,
+            "categories": [
+              "wood"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 2191 (Part 1): 1983",
+            "title": "WOODEN FLUSH DOOR SHUTTERS",
+            "rerank_score": 0.5004,
+            "rrf_score": 0.0145,
+            "category_boost": 0.0,
+            "categories": [
+              "wood"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 1003 (Part 2): 1994",
+            "title": "TIMBER PANELLED AND",
+            "rerank_score": 0.5004,
+            "rrf_score": 0.0244,
+            "category_boost": 0.0,
+            "categories": [
+              "glass",
+              "wood"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-006",
+        "query": "For our aluminium channels, especially the ones we supply for building frames, what kind of testing is involved to ensure they meet the quality marks?",
+        "expected": [
+          "IS 3921: 1985"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.481,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 3921: 1985",
+            "title": "ALUMINIUM CHANNELS",
+            "rerank_score": 0.5036,
+            "rrf_score": 0.0325,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 694: 1990",
+            "title": "PVC INSULATED CABLE FOR WORKING VOLTAGES",
+            "rerank_score": 0.5013,
+            "rrf_score": 0.0147,
+            "category_boost": 0.0,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 5384: 1985",
+            "title": "ALUMINIUM   I–BEAM",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0139,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 739: 1992",
+            "title": "WROUGHT ALUMINIUM AND ALUMINIUM",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0156,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 1285: 2002",
+            "title": "WROUGHT ALUMINIUM AND ALUMINIUM ALLOY",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0159,
+            "category_boost": 0.0,
+            "categories": [
+              "pipe"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-007",
+        "query": "For our low-density particle boards, the ones we make for lightweight furniture, what kind of tests will we need to do to get the BIS mark?",
+        "expected": [
+          "IS 3129: 1985"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.845,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 3129: 1985",
+            "title": "LOW DENSITY PARTICLE BOARDS",
+            "rerank_score": 0.509,
+            "rrf_score": 0.0315,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 3087: 1985",
+            "title": "WOOD PARTICLE BOARDS (MEDIUM DENSITY)",
+            "rerank_score": 0.5035,
+            "rrf_score": 0.0308,
+            "category_boost": 0.0,
+            "categories": [
+              "wood"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 3097: 1980",
+            "title": "VENEERED PARTICLE BOARDS",
+            "rerank_score": 0.5009,
+            "rrf_score": 0.0306,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 12406: 2003",
+            "title": "MEDIUM DENSITY FIBRE BOARDS FOR",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0152,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 14276: 1995",
+            "title": "CEMENT BONDED PARTICLE BOARDS",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0305,
+            "category_boost": 0.0,
+            "categories": [
+              "cement",
+              "wood"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-008",
+        "query": "For our wash basins, what kind of testing will the BIS lab do to make sure they meet the quality marks, especially for the glaze and how well they fit standard plumbing?",
+        "expected": [
+          "IS 2556 (Part 4): 1994"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.962,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 2556 (Part 4): 1994",
+            "title": "VITREOUS SANITARY  APLLIANCES",
+            "rerank_score": 0.5018,
+            "rrf_score": 0.0323,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 8727: 1978",
+            "title": "VITREOUS  ENAMELLED STEEL WASH–BASINS",
+            "rerank_score": 0.5016,
+            "rrf_score": 0.0315,
+            "category_boost": 0.0,
+            "categories": [
+              "steel"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 2556 (Part 1): 1994",
+            "title": "VITREOUS SANITARY APPLIANCES",
+            "rerank_score": 0.5011,
+            "rrf_score": 0.0283,
+            "category_boost": 0.0,
+            "categories": [
+              "glass"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 651: 1992",
+            "title": "SALT GLAZED STONEWARE PIPES AND FITTINGS",
+            "rerank_score": 0.501,
+            "rrf_score": 0.0282,
+            "category_boost": 0.0,
+            "categories": [
+              "pipe"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 3006: 1979",
+            "title": "CHEMICALLY  RESISTANT GLAZED STONEWARE",
+            "rerank_score": 0.5006,
+            "rrf_score": 0.0154,
+            "category_boost": 0.0,
+            "categories": [
+              "pipe"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-009",
+        "query": "For our laterite stone blocks, what kind of testing do we need to do to make sure they meet the quality requirements for building walls?",
+        "expected": [
+          "IS 3620: 1979"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.934,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 3620: 1979",
+            "title": "LATERITE  STONE  BLOCK  FOR  MASONRY",
+            "rerank_score": 0.5782,
+            "rrf_score": 0.0328,
+            "category_boost": 0.0,
+            "categories": [
+              "block"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 12440: 1988",
+            "title": "PRECAST CONCRETE STONE MASONRY BLOCKS",
+            "rerank_score": 0.5019,
+            "rrf_score": 0.0303,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 5751: 1984",
+            "title": "PRECAST  CONCRETE COPING BLOCKS",
+            "rerank_score": 0.5012,
+            "rrf_score": 0.0161,
+            "category_boost": 0.0,
+            "categories": [
+              "block",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 2185 (Part 1): 1979",
+            "title": "CONCRETE MASONRY UNITS",
+            "rerank_score": 0.5008,
+            "rrf_score": 0.0159,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 3115: 1992",
+            "title": "LIME BASED BLOCKS",
+            "rerank_score": 0.5007,
+            "rrf_score": 0.0318,
+            "category_boost": 0.0,
+            "categories": [
+              "lime_gypsum"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-010",
+        "query": "For our blockboards, especially the ones we sell for outdoor use, what kind of performance tests will the BIS lab conduct to ensure they meet the quality marks?",
+        "expected": [
+          "IS 1659: 2004"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 1.502,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 1659: 2004",
+            "title": "BLOCK BOARDS",
+            "rerank_score": 0.5076,
+            "rrf_score": 0.0313,
+            "category_boost": 0.0,
+            "categories": [
+              "block"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 694: 1990",
+            "title": "PVC INSULATED CABLE FOR WORKING VOLTAGES",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0164,
+            "category_boost": 0.0,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 14443: 1997",
+            "title": "POLYCARBONATE SHEETS",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0154,
+            "category_boost": 0.0,
+            "categories": [
+              "glass"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 12049: 1987",
+            "title": "DIMENSIONS AND TOLERANCES RELATING",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0159,
+            "category_boost": 0.0,
+            "categories": [
+              "insulation",
+              "wood"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 2046: 1995",
+            "title": "DECORATIVE THERMOSETTING SYNTHETIC",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0152,
+            "category_boost": 0.0,
+            "categories": []
+          }
+        ]
+      },
+      {
+        "id": "BS-011",
+        "query": "For our 3-ply and 7-ply fencing wire, what kind of testing will be involved to get this BIS certification?",
+        "expected": [
+          "IS 2140: 1978"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.564,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 2140: 1978",
+            "title": "STRANDED GALVANIZED STEEL WIRE FOR",
+            "rerank_score": 0.5135,
+            "rrf_score": 0.0325,
+            "category_boost": 0.0,
+            "categories": [
+              "steel"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 14268: 1995",
+            "title": "UNCOATED STRESS RELIEVED  LOW",
+            "rerank_score": 0.5004,
+            "rrf_score": 0.0161,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete",
+              "steel"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 6006: 1983",
+            "title": "UNCOATED STRESS RELIEVED STRAND FOR",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0284,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete",
+              "steel"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 4948: 2002",
+            "title": "WELDED STEEL WIRE FABRIC",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0308,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete",
+              "steel"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 1785 (Part I): 1983",
+            "title": "PLAIN HARD-DRAWN STEEL WIRE FOR",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0135,
+            "category_boost": 0.0,
+            "categories": [
+              "concrete",
+              "steel"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-012",
+        "query": "For this spray-on insulation material, what kind of tests will our batch samples need to go through to get certified?",
+        "expected": [
+          "IS 11128: 1984"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.757,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 11128: 1984",
+            "title": "SPRAY – APPLIED HYDRATED CALCIUM SILICATE",
+            "rerank_score": 0.5249,
+            "rrf_score": 0.0164,
+            "category_boost": 0.1,
+            "categories": [
+              "brick",
+              "insulation"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 9742: 1993",
+            "title": "SPRAYED MINERAL WOOL THERMAL INSULATION",
+            "rerank_score": 0.5131,
+            "rrf_score": 0.0291,
+            "category_boost": 0.1,
+            "categories": [
+              "insulation"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 8154: 1993",
+            "title": "PREORMED CALCIUM SILICATE INSULATION",
+            "rerank_score": 0.5027,
+            "rrf_score": 0.0152,
+            "category_boost": 0.1,
+            "categories": [
+              "brick",
+              "insulation"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 9428: 1993",
+            "title": "PREFORMED CALCIUM SILICATE INSULATION",
+            "rerank_score": 0.5021,
+            "rrf_score": 0.0147,
+            "category_boost": 0.1,
+            "categories": [
+              "brick",
+              "insulation"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 13204: 1991",
+            "title": "RIGID PHENOLIC FOAM FOR THERMAL",
+            "rerank_score": 0.5016,
+            "rrf_score": 0.0147,
+            "category_boost": 0.1,
+            "categories": [
+              "insulation",
+              "pipe"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-013",
+        "query": "For our waterproofing compound, how do we ensure our suppliers' cement is suitable for the permeability and strength tests, especially since the standard mentions a 3% limit on our compound's weight?",
+        "expected": [
+          "IS 2645: 2003"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.649,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 2645: 2003",
+            "title": "INTEGRAL CEMENT WATER-PROOFING",
+            "rerank_score": 0.6935,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 8043: 1991",
+            "title": "HYDROPHOBIC PORTLAND CEMENT",
+            "rerank_score": 0.5017,
+            "rrf_score": 0.0161,
+            "category_boost": 0.1,
+            "categories": [
+              "cement"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 12269: 1987",
+            "title": "53 GRADE ORDINARY PORTLAND CEMENT",
+            "rerank_score": 0.5005,
+            "rrf_score": 0.0143,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 12330: 1988",
+            "title": "SULPHATE RESISTING PORTLAND CEMENT",
+            "rerank_score": 0.5005,
+            "rrf_score": 0.0159,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete",
+              "lime_gypsum"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 2098: 1997",
+            "title": "ASBESTOS CEMENT BUILDING BOARDS",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0244,
+            "category_boost": 0.1,
+            "categories": [
+              "asbestos",
+              "cement"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-014",
+        "query": "For these washdown WCs, what kind of testing will our factory need to do to make sure they meet the quality and safety requirements?",
+        "expected": [
+          "IS 2556 (Part 2): 1994"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.784,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 2556 (Part 2): 1994",
+            "title": "VITREOUS SANITARY APPLIANCES",
+            "rerank_score": 0.5029,
+            "rrf_score": 0.0294,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 3311: 1979",
+            "title": "WASTE PLUG AND ITS ACCESSORIES FOR SINKS",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.024,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 694: 1990",
+            "title": "PVC INSULATED CABLE FOR WORKING VOLTAGES",
+            "rerank_score": 0.5,
+            "rrf_score": 0.0149,
+            "category_boost": 0.0,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 2692: 1989",
+            "title": "FERRULES FOR WATER SERVICES",
+            "rerank_score": 0.5,
+            "rrf_score": 0.0161,
+            "category_boost": 0.0,
+            "categories": [
+              "lock_hardware"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 2963: 1979",
+            "title": "COPPER ALLOY WASTE FITTINGS FOR",
+            "rerank_score": 0.5,
+            "rrf_score": 0.0149,
+            "category_boost": 0.0,
+            "categories": []
+          }
+        ]
+      },
+      {
+        "id": "BS-015",
+        "query": "For these PVC caps, what kind of testing will our batch samples need to go through to get certified for potable water use?",
+        "expected": [
+          "IS 10124 (Part 4): 1988"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.764,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 10124 (Part 4): 1988",
+            "title": "FABRICATED PVC FITTINGS FOR",
+            "rerank_score": 0.5157,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 7834 (Part 8): 1987",
+            "title": "- INJECTION MOULDED PVC SOCKET",
+            "rerank_score": 0.5029,
+            "rrf_score": 0.0308,
+            "category_boost": 0.1,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 10124 (Part 11): 1988",
+            "title": "FABRICATED PVC FITTING",
+            "rerank_score": 0.5021,
+            "rrf_score": 0.0154,
+            "category_boost": 0.1,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 10124 (Part 9): 1988",
+            "title": "FABRICATED PVC FITTING",
+            "rerank_score": 0.5021,
+            "rrf_score": 0.0152,
+            "category_boost": 0.1,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 10124 (Part 10): 1988",
+            "title": "FABRICATED PVC FITTING",
+            "rerank_score": 0.502,
+            "rrf_score": 0.0141,
+            "category_boost": 0.1,
+            "categories": [
+              "polymer"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-016",
+        "query": "For our curtain rail systems, what kind of material tests do we need to perform to ensure our product meets the quality requirements?",
+        "expected": [
+          "IS 10342: 1982"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.787,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 10342: 1982",
+            "title": "CURTAIN  RAIL SYSTEM",
+            "rerank_score": 0.645,
+            "rrf_score": 0.0328,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 14871: 2000",
+            "title": "PRODUCTS IN FIBRE REINFORCED",
+            "rerank_score": 0.5004,
+            "rrf_score": 0.0284,
+            "category_boost": 0.0,
+            "categories": [
+              "asbestos",
+              "cement",
+              "roofing"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 694: 1990",
+            "title": "PVC INSULATED CABLE FOR WORKING VOLTAGES",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0267,
+            "category_boost": 0.0,
+            "categories": [
+              "polymer"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 773: 1988",
+            "title": "ENAMELLED CAST IRON WATER–CLOSETS,",
+            "rerank_score": 0.5002,
+            "rrf_score": 0.0149,
+            "category_boost": 0.0,
+            "categories": [
+              "iron"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 10019: 1981",
+            "title": "MILD STEEL  STAYS  AND FASTENERS",
+            "rerank_score": 0.5001,
+            "rrf_score": 0.0139,
+            "category_boost": 0.0,
+            "categories": [
+              "steel"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-017",
+        "query": "For these reinforced concrete specials, what kind of testing will our batch need to undergo to get certified, especially for the different end types like flanged or spigot and socket?",
+        "expected": [
+          "IS 7322: 1985"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.547,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 7322: 1985",
+            "title": "SPECIALS FOR STEEL CYLINDER REINFORCED",
+            "rerank_score": 0.6929,
+            "rrf_score": 0.0328,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete",
+              "steel"
+            ]
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 784: 2001",
+            "title": "PRESTRESSED CONCRETE PIPES",
+            "rerank_score": 0.5008,
+            "rrf_score": 0.028,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete",
+              "pipe",
+              "steel"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 6072: 1971",
+            "title": "AUTOCLAVED REINFORCED CELLULAR",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0141,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 7319: 1974",
+            "title": "PERFORATED CONCRETE PIPES",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0161,
+            "category_boost": 0.1,
+            "categories": [
+              "cement",
+              "concrete"
+            ]
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 13990: 1994",
+            "title": "PRECAST REINFORCED CONCRETE",
+            "rerank_score": 0.5003,
+            "rrf_score": 0.0156,
+            "category_boost": 0.1,
+            "categories": [
+              "concrete"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "BS-018",
+        "query": "For our aluminium rods and sections used in general machinery, what kind of testing will be involved to get the necessary certification?",
+        "expected": [
+          "IS 733: 1983"
+        ],
+        "expected_rank": 1,
+        "miss@3": false,
+        "miss@5": false,
+        "latency_s": 0.418,
+        "top5": [
+          {
+            "rank": 1,
+            "is_code": "IS 733: 1983",
+            "title": "WROUGHT ALUMINIUM AND ALUMINIUM",
+            "rerank_score": 0.5259,
+            "rrf_score": 0.0325,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 2,
+            "is_code": "IS 8081: 1976",
+            "title": "SLOTTED SECTIONS",
+            "rerank_score": 0.5056,
+            "rrf_score": 0.0285,
+            "category_boost": 0.0,
+            "categories": [
+              "steel"
+            ]
+          },
+          {
+            "rank": 3,
+            "is_code": "IS 1285: 2002",
+            "title": "WROUGHT ALUMINIUM AND ALUMINIUM ALLOY",
+            "rerank_score": 0.5033,
+            "rrf_score": 0.0286,
+            "category_boost": 0.0,
+            "categories": [
+              "pipe"
+            ]
+          },
+          {
+            "rank": 4,
+            "is_code": "IS 738: 1994",
+            "title": "WROUGHT ALUMINIUM AND ITS ALLOYS-DRAWN",
+            "rerank_score": 0.5014,
+            "rrf_score": 0.0152,
+            "category_boost": 0.0,
+            "categories": []
+          },
+          {
+            "rank": 5,
+            "is_code": "IS 737: 1986",
+            "title": "WROUGHT ALUMINIUM AND ALUMINIUM ALLOY",
+            "rerank_score": 0.5009,
+            "rrf_score": 0.0149,
+            "category_boost": 0.0,
+            "categories": []
+          }
+        ]
+      }
+    ]
+  }
+]

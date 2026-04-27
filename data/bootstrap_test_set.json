@@ -1,0 +1,128 @@
+[
+  {
+    "id": "BS-001",
+    "query": "Namaste! We make marble tiles for homes and offices. For BIS certification, what kind of tests will our marble need to pass to show it's good quality?",
+    "expected_standards": [
+      "IS 1130: 1969"
+    ]
+  },
+  {
+    "id": "BS-002",
+    "query": "For this supersulphated cement, what specific tests will our batch need to undergo to get the quality mark?",
+    "expected_standards": [
+      "IS 6909: 1990"
+    ]
+  },
+  {
+    "id": "BS-003",
+    "query": "For our M30 screws, what kind of testing will be involved to meet the quality grade requirements?",
+    "expected_standards": [
+      "IS 1364 (Part 2): 2002"
+    ]
+  },
+  {
+    "id": "BS-004",
+    "query": "For our mortice locks, what kind of testing will we need to do to get the BIS certification, especially for the locking mechanism and durability?",
+    "expected_standards": [
+      "IS 2209: 1976"
+    ]
+  },
+  {
+    "id": "BS-005",
+    "query": "For these HDF panel doors, what kind of tests will our factory need to perform to ensure we meet the quality requirements?",
+    "expected_standards": [
+      "IS 15380: 2003"
+    ]
+  },
+  {
+    "id": "BS-006",
+    "query": "For our aluminium channels, especially the ones we supply for building frames, what kind of testing is involved to ensure they meet the quality marks?",
+    "expected_standards": [
+      "IS 3921: 1985"
+    ]
+  },
+  {
+    "id": "BS-007",
+    "query": "For our low-density particle boards, the ones we make for lightweight furniture, what kind of tests will we need to do to get the BIS mark?",
+    "expected_standards": [
+      "IS 3129: 1985"
+    ]
+  },
+  {
+    "id": "BS-008",
+    "query": "For our wash basins, what kind of testing will the BIS lab do to make sure they meet the quality marks, especially for the glaze and how well they fit standard plumbing?",
+    "expected_standards": [
+      "IS 2556 (Part 4): 1994"
+    ]
+  },
+  {
+    "id": "BS-009",
+    "query": "For our laterite stone blocks, what kind of testing do we need to do to make sure they meet the quality requirements for building walls?",
+    "expected_standards": [
+      "IS 3620: 1979"
+    ]
+  },
+  {
+    "id": "BS-010",
+    "query": "For our blockboards, especially the ones we sell for outdoor use, what kind of performance tests will the BIS lab conduct to ensure they meet the quality marks?",
+    "expected_standards": [
+      "IS 1659: 2004"
+    ]
+  },
+  {
+    "id": "BS-011",
+    "query": "For our 3-ply and 7-ply fencing wire, what kind of testing will be involved to get this BIS certification?",
+    "expected_standards": [
+      "IS 2140: 1978"
+    ]
+  },
+  {
+    "id": "BS-012",
+    "query": "For this spray-on insulation material, what kind of tests will our batch samples need to go through to get certified?",
+    "expected_standards": [
+      "IS 11128: 1984"
+    ]
+  },
+  {
+    "id": "BS-013",
+    "query": "For our waterproofing compound, how do we ensure our suppliers' cement is suitable for the permeability and strength tests, especially since the standard mentions a 3% limit on our compound's weight?",
+    "expected_standards": [
+      "IS 2645: 2003"
+    ]
+  },
+  {
+    "id": "BS-014",
+    "query": "For these washdown WCs, what kind of testing will our factory need to do to make sure they meet the quality and safety requirements?",
+    "expected_standards": [
+      "IS 2556 (Part 2): 1994"
+    ]
+  },
+  {
+    "id": "BS-015",
+    "query": "For these PVC caps, what kind of testing will our batch samples need to go through to get certified for potable water use?",
+    "expected_standards": [
+      "IS 10124 (Part 4): 1988"
+    ]
+  },
+  {
+    "id": "BS-016",
+    "query": "For our curtain rail systems, what kind of material tests do we need to perform to ensure our product meets the quality requirements?",
+    "expected_standards": [
+      "IS 10342: 1982"
+    ]
+  },
+  {
+    "id": "BS-017",
+    "query": "For these reinforced concrete specials, what kind of testing will our batch need to undergo to get certified, especially for the different end types like flanged or spigot and socket?",
+    "expected_standards": [
+      "IS 7322: 1985"
+    ]
+  },
+  {
+    "id": "BS-018",
+    "query": "For our aluminium rods and sections used in general machinery, what kind of testing will be involved to get the necessary certification?",
+    "expected_standards": [
+      "IS 733: 1983"
+    ]
+  }
+]

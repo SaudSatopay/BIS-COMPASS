@@ -1,0 +1,272 @@
+[
+  {
+    "id": "BS-001",
+    "query": "Namaste! We make marble tiles for homes and offices. For BIS certification, what kind of tests will our marble need to pass to show it's good quality?",
+    "expected_standards": [
+      "IS 1130: 1969"
+    ],
+    "retrieved_standards": [
+      "IS 1130: 1969",
+      "IS 13756: 1993",
+      "IS 13755: 1993",
+      "IS 13754: 1993",
+      "IS 3951 (Part 2): 1975"
+    ],
+    "latency_seconds": 0.673
+  },
+  {
+    "id": "BS-002",
+    "query": "For this supersulphated cement, what specific tests will our batch need to undergo to get the quality mark?",
+    "expected_standards": [
+      "IS 6909: 1990"
+    ],
+    "retrieved_standards": [
+      "IS 6909: 1990",
+      "IS 12330: 1988",
+      "IS 14871: 2000",
+      "IS 2096: 1992",
+      "IS 3709: 1966"
+    ],
+    "latency_seconds": 0.432
+  },
+  {
+    "id": "BS-003",
+    "query": "For our M30 screws, what kind of testing will be involved to meet the quality grade requirements?",
+    "expected_standards": [
+      "IS 1364 (Part 2): 2002"
+    ],
+    "retrieved_standards": [
+      "IS 1366: 2002",
+      "IS 3121: 1981",
+      "IS 2687: 1991",
+      "IS 1363 (Part 2): 2002",
+      "IS 2016: 1967"
+    ],
+    "latency_seconds": 0.413
+  },
+  {
+    "id": "BS-004",
+    "query": "For our mortice locks, what kind of testing will we need to do to get the BIS certification, especially for the locking mechanism and durability?",
+    "expected_standards": [
+      "IS 2209: 1976"
+    ],
+    "retrieved_standards": [
+      "IS 7540: 1974",
+      "IS 8760: 1978",
+      "IS 4992: 1975",
+      "IS 2209: 1976",
+      "IS 6607: 1972"
+    ],
+    "latency_seconds": 0.331
+  },
+  {
+    "id": "BS-005",
+    "query": "For these HDF panel doors, what kind of tests will our factory need to perform to ensure we meet the quality requirements?",
+    "expected_standards": [
+      "IS 15380: 2003"
+    ],
+    "retrieved_standards": [
+      "IS 15380: 2003",
+      "IS 1003 (Part 1): 2003",
+      "IS 2202 (Part 2): 1983",
+      "IS 2191 (Part 2): 1983",
+      "IS 2191 (Part 1): 1983"
+    ],
+    "latency_seconds": 0.333
+  },
+  {
+    "id": "BS-006",
+    "query": "For our aluminium channels, especially the ones we supply for building frames, what kind of testing is involved to ensure they meet the quality marks?",
+    "expected_standards": [
+      "IS 3921: 1985"
+    ],
+    "retrieved_standards": [
+      "IS 3921: 1985",
+      "IS 5384: 1985",
+      "IS 739: 1992",
+      "IS 651: 1992",
+      "IS 1285: 2002"
+    ],
+    "latency_seconds": 0.428
+  },
+  {
+    "id": "BS-007",
+    "query": "For our low-density particle boards, the ones we make for lightweight furniture, what kind of tests will we need to do to get the BIS mark?",
+    "expected_standards": [
+      "IS 3129: 1985"
+    ],
+    "retrieved_standards": [
+      "IS 3129: 1985",
+      "IS 3087: 1985",
+      "IS 3097: 1980",
+      "IS 15491: 2004",
+      "IS 12406: 2003"
+    ],
+    "latency_seconds": 0.364
+  },
+  {
+    "id": "BS-008",
+    "query": "For our wash basins, what kind of testing will the BIS lab do to make sure they meet the quality marks, especially for the glaze and how well they fit standard plumbing?",
+    "expected_standards": [
+      "IS 2556 (Part 4): 1994"
+    ],
+    "retrieved_standards": [
+      "IS 2556 (Part 4): 1994",
+      "IS 8727: 1978",
+      "IS 2556 (Part 1): 1994",
+      "IS 651: 1992",
+      "IS 3006: 1979"
+    ],
+    "latency_seconds": 0.44
+  },
+  {
+    "id": "BS-009",
+    "query": "For our laterite stone blocks, what kind of testing do we need to do to make sure they meet the quality requirements for building walls?",
+    "expected_standards": [
+      "IS 3620: 1979"
+    ],
+    "retrieved_standards": [
+      "IS 3620: 1979",
+      "IS 12440: 1988",
+      "IS 5751: 1984",
+      "IS 2185 (Part 1): 1979",
+      "IS 3115: 1992"
+    ],
+    "latency_seconds": 0.394
+  },
+  {
+    "id": "BS-010",
+    "query": "For our blockboards, especially the ones we sell for outdoor use, what kind of performance tests will the BIS lab conduct to ensure they meet the quality marks?",
+    "expected_standards": [
+      "IS 1659: 2004"
+    ],
+    "retrieved_standards": [
+      "IS 1659: 2004",
+      "IS 1003 (Part 2): 1994",
+      "IS 1003 (Part 1): 2003",
+      "IS 14862: 2000",
+      "IS 12049: 1987"
+    ],
+    "latency_seconds": 0.448
+  },
+  {
+    "id": "BS-011",
+    "query": "For our 3-ply and 7-ply fencing wire, what kind of testing will be involved to get this BIS certification?",
+    "expected_standards": [
+      "IS 2140: 1978"
+    ],
+    "retrieved_standards": [
+      "IS 2140: 1978",
+      "IS 6006: 1983",
+      "IS 4948: 2002",
+      "IS 9842: 1994",
+      "IS 278: 1978"
+    ],
+    "latency_seconds": 0.794
+  },
+  {
+    "id": "BS-012",
+    "query": "For this spray-on insulation material, what kind of tests will our batch samples need to go through to get certified?",
+    "expected_standards": [
+      "IS 11128: 1984"
+    ],
+    "retrieved_standards": [
+      "IS 11128: 1984",
+      "IS 9742: 1993",
+      "IS 8154: 1993",
+      "IS 9428: 1993",
+      "IS 4671: 1984"
+    ],
+    "latency_seconds": 0.546
+  },
+  {
+    "id": "BS-013",
+    "query": "For our waterproofing compound, how do we ensure our suppliers' cement is suitable for the permeability and strength tests, especially since the standard mentions a 3% limit on our compound's weight?",
+    "expected_standards": [
+      "IS 2645: 2003"
+    ],
+    "retrieved_standards": [
+      "IS 2645: 2003",
+      "IS 8043: 1991",
+      "IS 12269: 1987",
+      "IS 9743: 1990",
+      "IS 12330: 1988"
+    ],
+    "latency_seconds": 0.427
+  },
+  {
+    "id": "BS-014",
+    "query": "For these washdown WCs, what kind of testing will our factory need to do to make sure they meet the quality and safety requirements?",
+    "expected_standards": [
+      "IS 2556 (Part 2): 1994"
+    ],
+    "retrieved_standards": [
+      "IS 2556 (Part 2): 1994",
+      "IS 2556 (Part 1): 1994",
+      "IS 2556 (Part 14): 1994",
+      "IS 3311: 1979",
+      "IS 778: 1984"
+    ],
+    "latency_seconds": 0.249
+  },
+  {
+    "id": "BS-015",
+    "query": "For these PVC caps, what kind of testing will our batch samples need to go through to get certified for potable water use?",
+    "expected_standards": [
+      "IS 10124 (Part 4): 1988"
+    ],
+    "retrieved_standards": [
+      "IS 10124 (Part 4): 1988",
+      "IS 6307: 1985",
+      "IS 7834 (Part 8): 1987",
+      "IS 14182: 1994",
+      "IS 10124 (Part 11): 1988"
+    ],
+    "latency_seconds": 0.69
+  },
+  {
+    "id": "BS-016",
+    "query": "For our curtain rail systems, what kind of material tests do we need to perform to ensure our product meets the quality requirements?",
+    "expected_standards": [
+      "IS 10342: 1982"
+    ],
+    "retrieved_standards": [
+      "IS 10342: 1982",
+      "IS 3419: 1989",
+      "IS 11246: 1992",
+      "IS 14871: 2000",
+      "IS 694: 1990"
+    ],
+    "latency_seconds": 0.694
+  },
+  {
+    "id": "BS-017",
+    "query": "For these reinforced concrete specials, what kind of testing will our batch need to undergo to get certified, especially for the different end types like flanged or spigot and socket?",
+    "expected_standards": [
+      "IS 7322: 1985"
+    ],
+    "retrieved_standards": [
+      "IS 7322: 1985",
+      "IS 1536: 2001",
+      "IS 2002: 1979",
+      "IS 3989: 1984",
+      "IS 1626 (Part 1): 1994"
+    ],
+    "latency_seconds": 0.423
+  },
+  {
+    "id": "BS-018",
+    "query": "For our aluminium rods and sections used in general machinery, what kind of testing will be involved to get the necessary certification?",
+    "expected_standards": [
+      "IS 733: 1983"
+    ],
+    "retrieved_standards": [
+      "IS 733: 1983",
+      "IS 8081: 1976",
+      "IS 1285: 2002",
+      "IS 738: 1994",
+      "IS 737: 1986"
+    ],
+    "latency_seconds": 0.321
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "n_samples": 90,
+  "n_queries": 18,
+  "buckets": [
+    {
+      "lo": 0.95,
+      "hi": 1.01,
+      "n": 0,
+      "correct": 0
+    },
+    {
+      "lo": 0.85,
+      "hi": 0.95,
+      "n": 0,
+      "correct": 0
+    },
+    {
+      "lo": 0.7,
+      "hi": 0.85,
+      "n": 0,
+      "correct": 0
+    },
+    {
+      "lo": 0.55,
+      "hi": 0.7,
+      "n": 7,
+      "correct": 6
+    },
+    {
+      "lo": 0.4,
+      "hi": 0.55,
+      "n": 83,
+      "correct": 11
+    },
+    {
+      "lo": 0.25,
+      "hi": 0.4,
+      "n": 0,
+      "correct": 0
+    },
+    {
+      "lo": 0.1,
+      "hi": 0.25,
+      "n": 0,
+      "correct": 0
+    },
+    {
+      "lo": 0.0,
+      "hi": 0.1,
+      "n": 0,
+      "correct": 0
+    }
+  ],
+  "recommended": {
+    "high_threshold": 0.513134777545929,
+    "medium_threshold": 0.5010176301002502
+  }
+}

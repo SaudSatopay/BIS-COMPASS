@@ -1,0 +1,81 @@
+%%{ init: { "theme": "base", "themeVariables": {
+  "background": "#0A0A14",
+  "primaryColor": "#181820",
+  "primaryTextColor": "#F5F5FA",
+  "primaryBorderColor": "#2A2A36",
+  "lineColor": "#9A9AB0",
+  "secondaryColor": "#1F1F2A",
+  "tertiaryColor": "#181820",
+  "fontFamily": "Inter, system-ui, sans-serif"
+}} }%%
+flowchart LR
+    subgraph INGEST["📄 INGEST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        PDF["SP 21 PDF<br/><small>929 pages</small>"]
+        PARSE["pdf_parser.py<br/><small>PyMuPDF</small>"]
+        STD[("parsed_standards.json<br/><small>559 records</small>")]
+        WL[("is_code_whitelist.json<br/><small>guardrail</small>")]
+        PDF --> PARSE --> STD
+        PARSE --> WL
+    end
+
+    subgraph INDEX["🧭 INDEX&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        EMB["bge-m3 encoder<br/><small>1024-d, fp16, GPU</small>"]
+        FAISS[("FAISS IndexFlatIP<br/><small>cosine</small>")]
+        BM25[("BM25 sparse<br/><small>rank_bm25</small>")]
+        STD --> EMB --> FAISS
+        STD --> BM25
+    end
+
+    subgraph QUERY["🔍 QUERY&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        Q["User query<br/><small>plain English</small>"]
+    end
+
+    subgraph RETRIEVE["⚡ RETRIEVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        DENSE["Dense top-25"]
+        SPARSE["Sparse top-25"]
+        RRF{{"RRF Fusion<br/><small>1/(60+rank)</small>"}}
+        RERANK["bge-reranker-v2-m3<br/><small>cross-encoder</small>"]
+        FAISS --> DENSE
+        BM25 --> SPARSE
+        DENSE --> RRF
+        SPARSE --> RRF
+        RRF --> RERANK
+    end
+
+    subgraph GUARD["🛡 GUARD&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        WLCHECK{"IS in whitelist?"}
+        WL --> WLCHECK
+        RERANK --> WLCHECK
+    end
+
+    subgraph SERVE["🎯 SERVE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+        OUT["Top-5 standards<br/><small>+ confidence</small>"]
+        WLCHECK -- yes --> OUT
+        WLCHECK -- no --> DROP[/"drop & log"/]
+    end
+
+    subgraph UI["💬 UI (optional)&nbsp;&nbsp;&nbsp;"]
+        GEM["Gemini 2.0 Flash<br/><small>rationale</small>"]
+        FRONT["Next.js frontend"]
+        OUT --> GEM --> FRONT
+    end
+
+    Q --> EMB
+    Q --> BM25
+    Q --> RERANK
+
+    classDef ingestStyle fill:#181820,stroke:#5DADEC,color:#F5F5FA
+    classDef indexStyle fill:#181820,stroke:#FA915A,color:#F5F5FA
+    classDef retrieveStyle fill:#181820,stroke:#DC5082,color:#F5F5FA
+    classDef guardStyle fill:#181820,stroke:#34D399,color:#F5F5FA
+    classDef serveStyle fill:#181820,stroke:#5DADEC,color:#F5F5FA
+    classDef queryStyle fill:#1F1F2A,stroke:#FA915A,color:#F5F5FA
+    classDef uiStyle fill:#181820,stroke:#9A9AB0,color:#F5F5FA
+
+    class PDF,PARSE,STD,WL ingestStyle
+    class EMB,FAISS,BM25 indexStyle
+    class DENSE,SPARSE,RRF,RERANK retrieveStyle
+    class WLCHECK,DROP guardStyle
+    class OUT serveStyle
+    class Q queryStyle
+    class GEM,FRONT uiStyle

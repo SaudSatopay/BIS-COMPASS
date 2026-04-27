@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: 8 8 12;
+  --foreground: 245 245 250;
+  --muted: 24 24 32;
+  --muted-foreground: 161 161 180;
+  --accent: 250 145 90;
+  --accent-2: 220 80 130;
+  --border: 38 38 48;
+}
+
+@theme inline {
+  --color-background: rgb(var(--background));
+  --color-foreground: rgb(var(--foreground));
+  --color-muted: rgb(var(--muted));
+  --color-muted-foreground: rgb(var(--muted-foreground));
+  --color-accent: rgb(var(--accent));
+  --color-accent-2: rgb(var(--accent-2));
+  --color-border: rgb(var(--border));
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+html,
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.18; }
+  50%      { opacity: 0.32; }
+}
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(120, 120, 160, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 120, 160, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(250, 145, 90, 0.18) 50%,
+    transparent 70%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+::selection {
+  background: rgba(250, 145, 90, 0.32);
+  color: rgb(var(--foreground));
+}
+
+* {
+  border-color: rgb(var(--border));
+}
+
+textarea, input, button {
+  font-family: inherit;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--border)); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--muted-foreground)); }

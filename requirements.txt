@@ -1,0 +1,40 @@
+# BIS Compass — pinned to the exact versions tested.
+# Reproduce the eval pipeline with:  pip install -r requirements.txt
+# (NVIDIA Blackwell needs torch from the cu128 channel — see the note below.)
+
+# ─── Core ─────────────────────────────────────────────────────────────────
+python-dotenv==1.2.2
+numpy==2.2.6
+pydantic==2.13.3
+orjson==3.11.8
+tqdm==4.67.3
+
+# ─── PDF parsing ──────────────────────────────────────────────────────────
+PyMuPDF==1.27.2.2
+
+# ─── ML stack ─────────────────────────────────────────────────────────────
+# NOTE: For NVIDIA Blackwell (RTX 50-series), install torch FIRST from the
+#   cu128 channel:
+#       pip install torch==2.11.0+cu128 --index-url https://download.pytorch.org/whl/cu128
+#   then run `pip install -r requirements.txt` for everything else.
+# For other GPUs / CPU, plain `pip install torch==2.11.0` works.
+torch==2.11.0
+transformers==5.6.2
+sentence-transformers==5.4.1
+FlagEmbedding==1.4.0
+huggingface-hub==1.12.0
+
+# ─── Retrieval ────────────────────────────────────────────────────────────
+faiss-cpu==1.13.2
+rank-bm25==0.2.2
+
+# ─── LLMs (used by the demo UI only — inference.py never calls them) ──────
+google-genai==1.73.1
+groq==1.2.0
+
+# ─── API server (demo only — inference.py does not require it) ────────────
+fastapi==0.136.1
+uvicorn[standard]==0.46.0
+
+# ─── Tests ────────────────────────────────────────────────────────────────
+pytest==9.0.3

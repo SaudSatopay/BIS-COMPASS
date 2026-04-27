@@ -1,0 +1,82 @@
+# Environment
+.env
+.env.local
+*.key
+
+# Internal / AI-agent context — not part of the public submission
+CLAUDE.md
+AGENTS.md
+.claude/
+.cursor/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Models / cache
+.cache/
+hf_cache/
+models/
+
+# Data artifacts — only the very large ones are excluded; small indexes are
+# committed so `python inference.py` works without rebuilding.
+# ColBERT index (~700 MB, regenerable, opt-in feature):
+data/index/*.npz
+data/index/*.npy
+
+# Node — root and frontend
+node_modules/
+package-lock.json
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Local exploration / debug artifacts
+scripts/_*.txt
+docs/_user_deck/
+
+# Eval artifacts kept in-repo: ablation.json, confidence_calibration.json,
+# public_postfix.json, bootstrap_postfix.json (the canonical reference runs).
+# Older intermediate runs (v4, v5_v6, hybrid, polished, etc.) are dev-only:
+data/results/bootstrap_colbert.json
+data/results/bootstrap_hybrid.json
+data/results/bootstrap_polished.json
+data/results/bootstrap_v4.json
+data/results/bootstrap_v5_v6.json
+data/results/bootstrap_v6b.json
+data/results/bootstrap_v6c.json
+data/results/bootstrap_final.json
+data/results/honest_boot.json
+data/results/no_colbert_boot.json
+data/results/final_boot.json
+data/results/public_colbert.json
+data/results/public_hybrid.json
+data/results/public_polished.json
+data/results/public_v4.json
+data/results/public_v5_v6.json
+data/results/public_v6b.json
+data/results/public_v6c.json
+data/results/public_final.json
+data/results/honest_public.json
+data/results/no_colbert_public.json
