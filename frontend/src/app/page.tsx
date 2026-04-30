@@ -11,7 +11,7 @@ export default function Page() {
       <CursorGlow />
       <StickyHeader />
       <Hero />
-      <div className="relative z-10 pb-16">
+      <div id="search" className="relative z-10 pt-24 sm:pt-28 pb-16 scroll-mt-16">
         <SearchPanel />
         <StatsBar />
       </div>

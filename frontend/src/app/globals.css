@@ -26,6 +26,17 @@
     "Courier New", monospace;
 }
 
+/* Display font (Bricolage Grotesque) for hero headlines */
+.font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-variation-settings: "opsz" 96;
+}
+/* Editorial serif italic accent (Instrument Serif) */
+.font-serif-italic {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+}
+
 html,
 body {
   background: rgb(var(--background));
