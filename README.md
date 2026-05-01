@@ -70,7 +70,17 @@ bash setup.sh          # macOS / Linux
 python setup.py        # any OS (works if Python is on PATH)
 ```
 
-The script is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm. First run on a fresh machine is **3–7 minutes** (most of which is the one-time HuggingFace model download — `bge-m3` and `bge-reranker-v2-m3`, ~5 GB combined).
+The script is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm.
+
+⏱ **Expected first-run time on a fresh machine:**
+
+| Setup | Total time |
+| --- | --- |
+| With HF token (recommended — `setup.py` will prompt for one) | **~5 min** |
+| Anonymous HuggingFace download (rate-limited) | **~20–25 min** |
+| Subsequent runs (everything cached, fully offline) | **~10 sec** |
+
+The dominant cost is the one-time HuggingFace download. We pre-filter the download to SafeTensors only — skipping ONNX, PyTorch bin, and OpenVINO variants that the libraries don't use — which cuts the wire size from ~12 GB (full repos) to ~5 GB (SafeTensors only). With a free read-only HF token, that ~5 GB takes 3–5 minutes; anonymous it's 15–20 minutes due to HuggingFace's rate limiting.
 
 What the script does, with progress and timing for every step:
 1. Pre-flight checks (Python version, free disk)

@@ -184,12 +184,18 @@ def maybe_prompt_hf_token() -> None:
         return
 
     print()
-    print(color("cyan", "  HuggingFace download speed-up (optional)"))
-    print(color("dim", "    Anonymous HF downloads are rate-limited (~1 MB/s)."))
-    print(color("dim", "    A free read-only token bumps this to ~10-50 MB/s,"))
-    print(color("dim", "    cutting the one-time ~5 GB model download from"))
-    print(color("dim", "    ~30 minutes to ~3 minutes on a typical connection."))
-    print(color("dim", "    Get one in 30 seconds: https://huggingface.co/settings/tokens"))
+    print(color("yellow", "  ┌────────────────────────────────────────────────────────┐"))
+    print(color("yellow", "  │  HuggingFace token — STRONGLY recommended              │"))
+    print(color("yellow", "  └────────────────────────────────────────────────────────┘"))
+    print()
+    print(color("bold", "    Without a token:  ~3 GB download takes 15–25 minutes"))
+    print(color("green", "    With a free token: same download in 3–5 minutes"))
+    print()
+    print(color("dim", "    Get one in 30 seconds:"))
+    print(color("cyan", "      https://huggingface.co/settings/tokens"))
+    print(color("dim", "      (sign in with Google → 'Create new token' → 'Read')"))
+    print()
+    print(color("dim", "    Paste it below, or press Enter to skip (slower)."))
     print()
 
     try:
@@ -253,6 +259,63 @@ def preflight() -> None:
 # Steps
 # ----------------------------------------------------------------------
 TOTAL = 7
+
+
+def step_prefetch_models(n: int):
+    """Pre-fetch only the model files we actually need from HuggingFace.
+
+    The default `snapshot_download` triggered by sentence-transformers /
+    FlagEmbedding pulls the WHOLE repo for each model — which for bge-m3
+    means ~7 GB (PyTorch bin + ONNX + SafeTensors + LoRA adapters in
+    parallel). We only need SafeTensors + tokenizer + configs (~2.3 GB).
+    Same story for bge-reranker-v2-m3.
+
+    Filtering with `ignore_patterns` cuts the total HF download from
+    ~12 GB to ~5 GB without changing model behaviour.
+    """
+    t = step(
+        n, TOTAL,
+        "Pre-fetching HF models (filtered to SafeTensors only, ~5 GB instead of ~12 GB)",
+    )
+    try:
+        from huggingface_hub import snapshot_download  # noqa: PLC0415
+    except ImportError:
+        print(color("yellow", "      huggingface_hub not yet installed — skipping pre-fetch."))
+        print(color("yellow", "      (Models will still download, just unfiltered.)"))
+        return
+
+    ignore_patterns = [
+        # Alternate weight formats we don't use (we read SafeTensors)
+        "*.onnx",
+        "onnx/*",
+        "onnx_*/*",
+        "openvino/*",
+        "openvino_*/*",
+        "pytorch_model.bin",
+        "pytorch_model-*",
+        "model.bin",
+        "*.msgpack",
+        "*.h5",
+        # Image / multimodal extras (bge-m3 ships none, but defensive)
+        "*.gguf",
+    ]
+    token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+
+    for model_id in ("BAAI/bge-m3", "BAAI/bge-reranker-v2-m3"):
+        print(color("dim", f"      → {model_id}"))
+        try:
+            snapshot_download(
+                repo_id=model_id,
+                ignore_patterns=ignore_patterns,
+                token=token,
+                # Print download progress to the same stream so the user
+                # sees what's happening
+                tqdm_class=None,
+            )
+        except Exception as e:  # noqa: BLE001
+            print(color("yellow", f"      WARNING: pre-fetch of {model_id} failed: {e}"))
+            print(color("yellow", "      Falling back to library-default download."))
+    done(t)
 
 
 def step_install_deps(n: int):
@@ -345,12 +408,12 @@ def main():
     overall = time.time()
 
     step_install_deps(1)
-    # Step 2 reserved as preflight summary; merge into 1 for cleaner UX
-    step_parse_pdf(2)
-    step_build_dense(3)
-    step_build_bm25(4)
-    step_warmup(5)
-    step_score(6)
+    step_prefetch_models(2)
+    step_parse_pdf(3)
+    step_build_dense(4)
+    step_build_bm25(5)
+    step_warmup(6)
+    step_score(7)
 
     elapsed = time.time() - overall
 
