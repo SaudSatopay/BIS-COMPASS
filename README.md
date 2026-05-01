@@ -163,7 +163,19 @@ npm run build && npm start    # use the production build, NOT `npm run dev`
 > recommend it for the demo — and that's what the screenshots in
 > `docs/demo_hero.png` / `docs/demo_results.png` were captured against.
 
-Open <http://localhost:3000>. The UI sends each query to `POST /search` which returns the hybrid top-5 plus a Gemini-generated one-line rationale per hit (with a **whitelist filter** — any rationale that mentions an IS code outside the SP 21 corpus is dropped before reaching the user).
+Open <http://localhost:3000>. You'll land on a full-viewport hero with the project metrics and two CTAs:
+
+* **Try the demo** — smooth-scrolls to the search panel.
+* **Watch architecture** — opens an inline 8-scene architecture walkthrough as a modal overlay (`docs/architecture.html` rendered in an iframe). Press `← / → / Space` to navigate scenes, `A` for autoplay, `Esc` to close.
+
+The search panel sends each query to `POST /search` and renders the hybrid top-5 with a confidence band per hit (high / medium / low, calibrated). Above the sample queries, a prominent **AI Rationale Layer** toggle controls whether Gemini / Groq is called:
+
+| Toggle | Latency | Output |
+| ------ | ------- | ------ |
+| **OFF** *(default)* | ~0.4 s | pure hybrid retrieval (BM25 + dense + RRF + cross-encoder) — **identical** retrieval results to the ON state |
+| **ON**              | ~1.5–2 s | adds a Gemini-generated one-line rationale per hit and an expanded query context |
+
+Both modes honour the **IS-code whitelist filter** — any rationale that mentions a code outside the SP 21 corpus is silently dropped before reaching the user. The toggle exists so judges can verify the retrieval system stands on its own without LLM enrichment.
 
 ---
 
@@ -173,6 +185,7 @@ Open <http://localhost:3000>. The UI sends each query to `POST /search` which re
 .
 ├── inference.py                ← MANDATORY judge entry point (--input, --output)
 ├── eval_script.py              ← MANDATORY (provided by organisers, copied verbatim)
+├── setup.bat                   ← one-command Windows env setup (deps + indices + warm-up + score)
 ├── requirements.txt
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
@@ -201,9 +214,23 @@ Open <http://localhost:3000>. The UI sends each query to `POST /search` which re
 │   └── api/main.py             ← FastAPI backend for the demo
 │
 ├── frontend/                   ← Next.js 16 + Tailwind v4 + Framer Motion
+│
+├── docs/
+│   ├── architecture.png        ← rendered Mermaid diagram (in this README)
+│   ├── architecture.mmd        ← Mermaid source
+│   ├── architecture.html       ← 8-scene animated walkthrough (used by the UI's "Watch architecture" CTA)
+│   ├── ablation.md             ← retrieval variant comparison
+│   ├── failure_analysis.md     ← per-query miss analysis
+│   └── demo_script.md          ← 7-min demo video storyboard
+│
+├── tests/                      ← pytest suite (parser, metadata, xref, whitelist, offline)
+│
 └── scripts/
-    ├── peek_pdf.py             ← parser dev tool
-    └── bootstrap_eval_set.py   ← synthesises eval queries with Gemini
+    ├── ablation.py             ← reproduces docs/ablation.md
+    ├── bootstrap_eval_set.py   ← synthesises eval queries with Gemini
+    ├── calibrate_confidence.py ← derives the 0.55 / 0.40 confidence bands
+    ├── failure_analysis.py     ← reproduces docs/failure_analysis.md
+    └── setup_offline.py        ← pre-downloads HF model weights
 ```
 
 ---
