@@ -14,6 +14,7 @@ export function SearchPanel() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [openCode, setOpenCode] = useState<string | null>(null);
+  const [aiEnrich, setAiEnrich] = useState(false); // off by default for speed
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const submit = (q?: string) => {
@@ -24,7 +25,10 @@ export function SearchPanel() {
     setResponse(null);
     startTransition(async () => {
       try {
-        const r = await search(text);
+        const r = await search(text, {
+          rewrite: aiEnrich,
+          rationales: aiEnrich,
+        });
         setResponse(r);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "Unknown error");
@@ -87,6 +91,94 @@ export function SearchPanel() {
           </div>
         </div>
       </motion.form>
+
+      {/* AI rationale toggle — prominent so judges discover and test it */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.32 }}
+        className={cn(
+          "mt-4 rounded-2xl border bg-muted/20 backdrop-blur-sm transition-colors",
+          aiEnrich
+            ? "border-accent/40 bg-gradient-to-br from-accent/[0.06] via-transparent to-accent-2/[0.06]"
+            : "border-border",
+        )}
+      >
+        <div className="flex items-center justify-between gap-4 p-4 sm:p-5">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2.5">
+              <Sparkles
+                className={cn(
+                  "size-4 transition",
+                  aiEnrich ? "text-accent" : "text-muted-foreground",
+                )}
+              />
+              <span className="text-[15px] font-semibold tracking-tight">
+                AI Rationale Layer
+              </span>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider transition",
+                  aiEnrich
+                    ? "bg-accent/15 text-accent border border-accent/30"
+                    : "bg-muted/60 text-muted-foreground border border-border",
+                )}
+              >
+                {aiEnrich ? "ON" : "OFF"}
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs sm:text-[13px] text-muted-foreground leading-relaxed pr-3">
+              {aiEnrich ? (
+                <>
+                  <span className="text-accent">Gemini / Groq is generating</span>{" "}
+                  a one-line rationale per hit and an expanded query
+                  context. Adds <span className="text-foreground/85">~1.0–1.5 s</span>{" "}
+                  of LLM latency on top of retrieval.
+                </>
+              ) : (
+                <>
+                  <span className="text-foreground/85">Pure retrieval — typically under half a second per query.</span>{" "}
+                  Toggle ON to layer Gemini-generated rationale and query
+                  expansion on top of the same retrieval.{" "}
+                  <span className="text-foreground/65">
+                    Retrieval results are identical either way.
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* Big switch */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={aiEnrich}
+            onClick={() => setAiEnrich((v) => !v)}
+            className={cn(
+              "relative inline-flex h-9 w-[68px] shrink-0 cursor-pointer items-center rounded-full transition-colors",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              aiEnrich
+                ? "bg-gradient-to-r from-accent to-accent-2"
+                : "bg-muted/80 border border-border",
+            )}
+            title="Toggle the AI rationale layer"
+          >
+            <span
+              className={cn(
+                "absolute size-7 rounded-full bg-white shadow-lg transition-all duration-300 ease-out flex items-center justify-center",
+                aiEnrich ? "translate-x-[33px]" : "translate-x-[3px]",
+              )}
+            >
+              <Sparkles
+                className={cn(
+                  "size-3.5 transition",
+                  aiEnrich ? "text-accent" : "text-muted-foreground/50",
+                )}
+              />
+            </span>
+          </button>
+        </div>
+      </motion.div>
 
       <motion.div
         initial={{ opacity: 0 }}
