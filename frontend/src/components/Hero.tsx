@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
 const STATS = [
   { value: "100%", label: "Hit @ 3", target: "target >80%", flex: true },
   { value: "0.93", label: "MRR @ 5", target: "target >0.7", flex: true },
-  { value: "<0.5s", label: "Latency", target: "target <5s", flex: false },
+  { value: "<1s", label: "Latency", target: "target <5s", flex: false },
   { value: "559", label: "Standards", target: "BIS SP 21", flex: false },
 ];
 
