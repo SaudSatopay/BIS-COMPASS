@@ -48,6 +48,16 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 
 ## 2 · Reproducing our results
 
+### 2.0 One-command setup (Windows) — recommended for judges
+
+```cmd
+setup.bat
+```
+
+That single script runs every step below: dependency install → PDF parse → both indices → warm-up `inference.py` → score with `eval_script.py`. First run takes 3–5 min (most of which is the one-time HuggingFace model download). Subsequent runs are ~30 s and fully offline.
+
+For Linux / macOS judges, run the steps in §2.2–§2.5 below in order — same commands, same outcome.
+
 ### 2.1 Prerequisites
 
 * Python **3.10+**
