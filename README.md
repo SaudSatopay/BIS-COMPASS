@@ -56,15 +56,32 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 
 ## 2 · Reproducing our results
 
-### 2.0 One-command setup (Windows) — recommended for judges
+### 2.0 One-command setup — recommended for judges
+
+Pick the entry point for your OS — all three execute the same `setup.py` so behaviour is identical:
 
 ```cmd
-setup.bat
+setup.bat              :: Windows (double-click or run in cmd)
+```
+```bash
+bash setup.sh          # macOS / Linux
+```
+```bash
+python setup.py        # any OS (works if Python is on PATH)
 ```
 
-That single script runs every step below: dependency install → PDF parse → both indices → warm-up `inference.py` → score with `eval_script.py`. First run takes 3–5 min (most of which is the one-time HuggingFace model download). Subsequent runs are ~30 s and fully offline.
+The script is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm. First run on a fresh machine is **3–7 minutes** (most of which is the one-time HuggingFace model download — `bge-m3` and `bge-reranker-v2-m3`, ~5 GB combined).
 
-For Linux / macOS judges, run the steps in §2.2–§2.5 below in order — same commands, same outcome.
+What the script does, with progress and timing for every step:
+1. Pre-flight checks (Python version, free disk)
+2. `pip install -r requirements.txt`
+3. Parse SP 21 PDF → `parsed_standards.json` + `is_code_whitelist.json`
+4. Build FAISS dense index (downloads `bge-m3` on first run)
+5. Build BM25 sparse index
+6. Warm-up `inference.py` on the public test set (downloads `bge-reranker-v2-m3` on first run)
+7. Score the warm-up with `eval_script.py`
+
+If you'd rather run the steps individually, §2.2–§2.5 below walks through them.
 
 ### 2.1 Prerequisites
 
@@ -193,7 +210,9 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 .
 ├── inference.py                ← MANDATORY judge entry point (--input, --output)
 ├── eval_script.py              ← MANDATORY (provided by organisers, copied verbatim)
-├── setup.bat                   ← one-command Windows env setup (deps + indices + warm-up + score)
+├── setup.py                    ← one-command env setup (deps + indices + warm-up + score), cross-platform
+├── setup.bat                   ← Windows shortcut to setup.py (double-clickable)
+├── setup.sh                    ← macOS / Linux shortcut to setup.py
 ├── requirements.txt
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
