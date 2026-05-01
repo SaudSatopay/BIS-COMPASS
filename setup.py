@@ -123,6 +123,98 @@ def all_exist(*paths: str) -> bool:
 
 
 # ----------------------------------------------------------------------
+# HuggingFace token prompt (optional, but big speedup)
+# ----------------------------------------------------------------------
+def _persist_hf_token(token: str) -> None:
+    """Save HF_TOKEN to .env so subsequent runs (and the FastAPI backend)
+    pick it up automatically. Idempotent — replaces any existing line."""
+    env_file = ROOT / ".env"
+    lines: list[str] = []
+    if env_file.exists():
+        try:
+            lines = env_file.read_text(encoding="utf-8").splitlines()
+        except Exception:  # noqa: BLE001
+            lines = []
+    lines = [ln for ln in lines if not ln.strip().startswith("HF_TOKEN=")]
+    lines.append(f"HF_TOKEN={token}")
+    env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def maybe_prompt_hf_token() -> None:
+    """If we don't already have an HF token, offer the user a one-time prompt.
+    Authenticated HF downloads are ~10-50× faster than anonymous (which is
+    rate-limited to ~1 MB/s). Skipping is fine — falls back to anonymous."""
+
+    # Already in env?
+    if os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN"):
+        print(color("dim", "  HF_TOKEN ✓ (already set in environment)"))
+        return
+
+    # Already saved by `huggingface-cli login`?
+    hf_dir = Path.home() / ".cache" / "huggingface"
+    for candidate in (hf_dir / "token", hf_dir / "stored_tokens"):
+        if candidate.exists():
+            try:
+                content = candidate.read_text(encoding="utf-8").strip()
+                if content and not content.startswith("{"):  # plain token, not json
+                    os.environ["HF_TOKEN"] = content.split()[0]
+                    print(color("dim", f"  HF_TOKEN ✓ (loaded from {candidate})"))
+                    return
+            except Exception:  # noqa: BLE001
+                pass
+
+    # Already in .env?
+    env_file = ROOT / ".env"
+    if env_file.exists():
+        try:
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line.startswith("HF_TOKEN=") and "=" in line:
+                    val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    if val:
+                        os.environ["HF_TOKEN"] = val
+                        print(color("dim", "  HF_TOKEN ✓ (loaded from .env)"))
+                        return
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Ask. Skip the prompt if stdin isn't a TTY (CI, piped input).
+    if not sys.stdin.isatty():
+        print(color("dim", "  HF_TOKEN not set (non-interactive shell — skipping prompt)"))
+        return
+
+    print()
+    print(color("cyan", "  HuggingFace download speed-up (optional)"))
+    print(color("dim", "    Anonymous HF downloads are rate-limited (~1 MB/s)."))
+    print(color("dim", "    A free read-only token bumps this to ~10-50 MB/s,"))
+    print(color("dim", "    cutting the one-time ~5 GB model download from"))
+    print(color("dim", "    ~30 minutes to ~3 minutes on a typical connection."))
+    print(color("dim", "    Get one in 30 seconds: https://huggingface.co/settings/tokens"))
+    print()
+
+    try:
+        token = input("  Paste HF token (or press Enter to skip): ").strip()
+    except (KeyboardInterrupt, EOFError):
+        print()
+        return
+
+    if not token:
+        print(color("yellow", "  Skipping — proceeding with anonymous downloads (slower)."))
+        return
+
+    if not token.startswith("hf_"):
+        print(color("yellow", "  WARNING: token doesn't start with 'hf_' — using it anyway."))
+
+    try:
+        _persist_hf_token(token)
+        os.environ["HF_TOKEN"] = token
+        print(color("green", "  ✓ Token saved to .env. HuggingFace downloads will be much faster."))
+    except Exception as e:  # noqa: BLE001
+        print(color("yellow", f"  Couldn't write .env ({e}) — using token for this run only."))
+        os.environ["HF_TOKEN"] = token
+
+
+# ----------------------------------------------------------------------
 # Pre-flight
 # ----------------------------------------------------------------------
 def preflight() -> None:
@@ -248,6 +340,7 @@ def step_score(n: int):
 def main():
     banner("BIS Compass — environment setup")
     preflight()
+    maybe_prompt_hf_token()
 
     overall = time.time()
 
