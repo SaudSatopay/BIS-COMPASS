@@ -170,9 +170,29 @@ Avg Latency             : 0.47 sec  (Target: <5 seconds)
 
 The judge eval is fully decoupled from the demo, but the UI is what tells the story.
 
+### 3.0 One-command boot
+
+```cmd
+start.bat              :: Windows
+```
+```bash
+bash start.sh          # macOS / Linux
+```
+```bash
+python start.py        # any OS
+```
+
+Brings up both servers, waits until they're reachable, opens `http://localhost:3000` in your default browser, and stays in the foreground until `Ctrl+C`. On first run it also auto-installs frontend `node_modules` and builds the production bundle.
+
+If a `GEMINI_API_KEY` / `GROQ_API_KEY` is missing, the UI greets the user with a one-time modal that lets them paste a free key (stored only in browser localStorage) — or skip and use pure-retrieval mode. No `.env` is strictly required.
+
+### 3.1 Manual boot (two terminals)
+
+If you'd rather run them separately:
+
 ```bash
 # Terminal 1 — backend (FastAPI on :8000)
-cp .env.example .env       # then paste your GEMINI_API_KEY
+cp .env.example .env       # optional: paste your GEMINI_API_KEY / GROQ_API_KEY
 python -m src.api.main
 
 # Terminal 2 — frontend (Next.js on :3000)
@@ -213,6 +233,9 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 ├── setup.py                    ← one-command env setup (deps + indices + warm-up + score), cross-platform
 ├── setup.bat                   ← Windows shortcut to setup.py (double-clickable)
 ├── setup.sh                    ← macOS / Linux shortcut to setup.py
+├── start.py                    ← boot the demo (backend on :8000 + frontend on :3000), cross-platform
+├── start.bat                   ← Windows shortcut to start.py
+├── start.sh                    ← macOS / Linux shortcut to start.py
 ├── requirements.txt
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
