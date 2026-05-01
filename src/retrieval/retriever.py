@@ -7,8 +7,54 @@ dominated by inference (embed + rerank), not I/O.
 from __future__ import annotations
 
 import json
+import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+
+def _auto_rerank_k(requested: int) -> int:
+    """Auto-clamp the rerank pool when hardware can't sustain it.
+
+    The cross-encoder is the dominant per-query cost. On a constrained GPU
+    (4 GB VRAM, e.g. GTX 1650) the reranker often spills to CPU silently
+    and a 25-candidate pool blows past the 5 s rulebook target. We detect
+    VRAM at startup and clamp the pool down so latency stays under target
+    without changing behaviour on capable hardware.
+
+    Override with RERANK_K=N (any integer) to force a specific pool size.
+    Override with RERANK_K_NO_AUTO=1 to disable auto-clamping entirely.
+    """
+    forced = os.getenv("RERANK_K")
+    if forced and forced.isdigit():
+        return int(forced)
+    if os.getenv("RERANK_K_NO_AUTO"):
+        return requested
+    try:
+        import torch  # noqa: PLC0415
+
+        if torch.cuda.is_available():
+            total_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+            if total_gb >= 7.5:
+                return requested  # ample VRAM — full quality
+            if total_gb >= 5.0:
+                clamped = min(requested, 18)
+            elif total_gb >= 3.5:
+                clamped = min(requested, 10)  # GTX 1650-class
+            else:
+                clamped = min(requested, 5)
+        else:
+            clamped = min(requested, 6)  # CPU — keep under 5 s rulebook target
+    except Exception:  # noqa: BLE001
+        return requested
+
+    if clamped != requested:
+        print(
+            f"[retriever] auto-clamped rerank pool {requested} -> {clamped} "
+            f"for this hardware (override with RERANK_K=N)",
+            file=sys.stderr,
+        )
+    return clamped
 
 from src.retrieval.bm25_index import BM25Index
 from src.retrieval.citation_prior import CitationPrior
@@ -76,7 +122,7 @@ class Retriever:
         self.colbert_pool_k = colbert_pool_k
         self.dense_k = dense_k
         self.bm25_k = bm25_k
-        self.rerank_k = rerank_k
+        self.rerank_k = _auto_rerank_k(rerank_k)
         self.final_k = final_k
         self.rrf_c = rrf_c
         self.use_phrase_boost = use_phrase_boost
