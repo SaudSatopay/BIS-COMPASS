@@ -4,6 +4,7 @@ import { Hero } from "@/components/Hero";
 import { SearchPanel } from "@/components/SearchPanel";
 import { StatsBar } from "@/components/StatsBar";
 import { StickyHeader } from "@/components/StickyHeader";
+import { WelcomeModal } from "@/components/WelcomeModal";
 
 export default function Page() {
   return (
@@ -16,6 +17,7 @@ export default function Page() {
         <StatsBar />
       </div>
       <Footer />
+      <WelcomeModal />
     </main>
   );
 }

@@ -53,7 +53,12 @@ def _is_quota_error(exc: Exception) -> bool:
 
 
 class LLMClient:
-    def __init__(self):
+    def __init__(
+        self,
+        gemini_api_key: str | None = None,
+        groq_api_key: str | None = None,
+        verbose: bool = True,
+    ):
         primary = (os.getenv("LLM_PRIMARY") or "gemini").lower().strip()
         if primary not in {"gemini", "groq"}:
             primary = "gemini"
@@ -63,18 +68,22 @@ class LLMClient:
 
         # Try Gemini
         try:
-            self.gemini = GeminiClient()
-            print(f"[llm] Gemini ready ({self.gemini.model_name})")
+            self.gemini = GeminiClient(api_key=gemini_api_key)
+            if verbose:
+                print(f"[llm] Gemini ready ({self.gemini.model_name})")
         except Exception as e:
-            print(f"[llm] Gemini unavailable: {e}")
+            if verbose:
+                print(f"[llm] Gemini unavailable: {e}")
 
         # Try Groq (lazy import so its dependency doesn't bog down env init)
         try:
             from src.llm.groq_client import GroqClient
-            self.groq = GroqClient()
-            print(f"[llm] Groq ready ({self.groq.model_name})")
+            self.groq = GroqClient(api_key=groq_api_key)
+            if verbose:
+                print(f"[llm] Groq ready ({self.groq.model_name})")
         except Exception as e:
-            print(f"[llm] Groq unavailable: {e}")
+            if verbose:
+                print(f"[llm] Groq unavailable: {e}")
 
         self._primary_name = primary
         self.last = _Status(

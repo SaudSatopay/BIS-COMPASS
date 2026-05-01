@@ -37,6 +37,11 @@ class SearchRequest(BaseModel):
     rationales: bool = True
     hyde: bool = False         # opt-in: HyDE adds 1 LLM call (~700ms)
     multi_query: bool = False  # opt-in: 1 extra LLM call, 3 paraphrased variants
+    # Optional per-request LLM keys — frontend can pass these from the
+    # browser's localStorage so judges can enable AI features without
+    # touching the .env file. Falls back to env-configured client if absent.
+    gemini_api_key: str | None = None
+    groq_api_key: str | None = None
 
 
 class HitOut(BaseModel):
@@ -191,7 +196,21 @@ def get_standard(is_code: str):
 @app.post("/search", response_model=SearchResponse)
 def search(req: SearchRequest) -> SearchResponse:
     retriever: Retriever = STATE["retriever"]
-    llm: LLMClient | None = STATE.get("llm")
+    # If the request carries per-request LLM keys (sent by the frontend from
+    # browser localStorage), build a one-off client; otherwise use the
+    # process-wide one constructed from env.
+    llm: LLMClient | None
+    if req.gemini_api_key or req.groq_api_key:
+        try:
+            llm = LLMClient(
+                gemini_api_key=req.gemini_api_key or None,
+                groq_api_key=req.groq_api_key or None,
+                verbose=False,
+            )
+        except Exception:  # noqa: BLE001
+            llm = STATE.get("llm")
+    else:
+        llm = STATE.get("llm")
     used_gemini = False  # legacy bool — true if any LLM produced output
     expanded = None
     material = None
