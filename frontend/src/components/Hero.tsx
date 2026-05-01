@@ -4,12 +4,13 @@ import { motion } from "framer-motion";
 import { ArrowDown, ArrowRight, Sparkles, PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { ArchitectureModal } from "./ArchitectureModal";
+import { cn } from "@/lib/cn";
 
 const STATS = [
-  { value: "100%", label: "Hit@3" },
-  { value: "0.93", label: "MRR@5" },
-  { value: "<1s", label: "latency" },
-  { value: "559", label: "standards" },
+  { value: "100%", label: "Hit @ 3", target: "target >80%", flex: true },
+  { value: "0.93", label: "MRR @ 5", target: "target >0.7", flex: true },
+  { value: "<0.5s", label: "Latency", target: "target <5s", flex: false },
+  { value: "559", label: "Standards", target: "BIS SP 21", flex: false },
 ];
 
 export function Hero() {
@@ -60,7 +61,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
           className="font-display mt-5 font-bold tracking-[-0.055em] leading-[0.88] text-balance"
-          style={{ fontSize: "clamp(2.5rem, 8vw, 7rem)" }}
+          style={{ fontSize: "clamp(2.25rem, 6.6vw, 6rem)" }}
         >
           <span className="block text-foreground/95">Find your</span>
           <span className="block bg-gradient-to-br from-accent via-amber-300 to-accent-2 bg-clip-text text-transparent pb-1">
@@ -88,24 +89,39 @@ export function Hero() {
           second.
         </motion.p>
 
-        {/* Inline stat row */}
+        {/* Stat grid — flex on the numbers we lead the field on */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.26, ease: "easeOut" }}
-          className="mt-7 flex flex-wrap items-center justify-center gap-x-8 gap-y-3"
+          className="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-3xl mx-auto w-full"
         >
-          {STATS.map((s, i) => (
-            <div key={s.label} className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-semibold tabular-nums tracking-tight bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">
-                {s.value}
-              </span>
-              <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">
-                {s.label}
-              </span>
-              {i < STATS.length - 1 && (
-                <span className="hidden sm:inline ml-4 text-muted-foreground/40">·</span>
+          {STATS.map((s) => (
+            <div
+              key={s.label}
+              className={cn(
+                "rounded-xl border bg-muted/20 backdrop-blur-sm px-4 py-3 sm:py-4 text-left transition",
+                s.flex
+                  ? "border-accent/30 bg-gradient-to-br from-accent/[0.06] via-transparent to-accent-2/[0.06]"
+                  : "border-border",
               )}
+            >
+              <div className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.14em] text-muted-foreground">
+                {s.label}
+              </div>
+              <div
+                className={cn(
+                  "mt-1 font-display font-bold tabular-nums leading-none tracking-tight",
+                  s.flex
+                    ? "text-3xl sm:text-4xl bg-gradient-to-br from-accent via-amber-300 to-accent-2 bg-clip-text text-transparent"
+                    : "text-2xl sm:text-3xl text-foreground",
+                )}
+              >
+                {s.value}
+              </div>
+              <div className="mt-1.5 text-[10px] sm:text-[11px] font-mono text-muted-foreground/70">
+                {s.target}
+              </div>
             </div>
           ))}
         </motion.div>

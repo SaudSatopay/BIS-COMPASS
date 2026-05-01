@@ -19,6 +19,14 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 
 > ⏱ **First run downloads ~5 GB of model weights** (`BAAI/bge-m3` + `BAAI/bge-reranker-v2-m3`) from HuggingFace — allow **3–5 minutes** on first invocation depending on your connection. All subsequent runs are fully offline (the [`offline guard`](src/offline_guard.py) auto-flips `HF_HUB_OFFLINE=1` once the cache is populated). Confirmed by the BIS Hackathon organisers as the expected pattern.
 
+> 🖥 **Cross-hardware validated.** All three rulebook targets pass on both ends of the consumer-GPU range:
+> | Hardware | Hit@3 | MRR@5 | Avg Latency |
+> | --- | ---: | ---: | ---: |
+> | **RTX 5060 Ti (16 GB)** | 100% | 0.9333 | **0.45 s** |
+> | **GTX 1650 (4 GB) / CPU-only torch** | 100% | 0.9500 | **3.71 s** |
+>
+> The retriever auto-detects available VRAM and clamps the cross-encoder rerank pool (`rerank_k`) so latency stays under target without changing behaviour on capable hardware (override with `RERANK_K=N` or `RERANK_K_NO_AUTO=1`). Judges' machines don't need to match our dev rig — the system adapts.
+
 ---
 
 ## 1 · Architecture at a glance
