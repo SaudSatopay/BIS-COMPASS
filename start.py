@@ -43,6 +43,14 @@ ROOT = Path(__file__).resolve().parent
 os.chdir(ROOT)
 IS_WINDOWS = platform.system() == "Windows"
 
+# Force UTF-8 stdout/stderr (Git Bash on Windows defaults to cp1252,
+# which can't encode the ✓ / ▶ glyphs we print).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
 # Re-use the color helpers from setup.py
 if IS_WINDOWS:
     os.system("")  # noqa: S605

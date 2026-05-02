@@ -44,6 +44,19 @@ ROOT = Path(__file__).resolve().parent
 os.chdir(ROOT)
 
 # ----------------------------------------------------------------------
+# Force UTF-8 stdout/stderr so the ✓ / ✗ / ▶ glyphs we print don't crash
+# on terminals whose default encoding can't represent them (Git Bash on
+# Windows defaults to cp1252; PowerShell sometimes too). We use
+# errors="replace" so a truly hostile encoding falls back to '?' instead
+# of raising UnicodeEncodeError.
+# ----------------------------------------------------------------------
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
+# ----------------------------------------------------------------------
 # ANSI colors — enable on Windows 10+ via os.system("")
 # ----------------------------------------------------------------------
 if platform.system() == "Windows":
@@ -442,8 +455,7 @@ def step_build_bm25(n: int):
 def step_warmup(n: int):
     t = step(
         n, TOTAL,
-        "Warm-up run on public test set "
-        "(first run downloads bge-reranker-v2-m3 ~2.3 GB)",
+        "Warm-up run on public test set (loads cached models, runs 10 eval queries)",
     )
     run(
         [
