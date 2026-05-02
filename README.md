@@ -20,12 +20,25 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 > ⏱ **First run downloads ~5 GB of model weights** (`BAAI/bge-m3` + `BAAI/bge-reranker-v2-m3`) from HuggingFace — allow **3–5 minutes** on first invocation depending on your connection. All subsequent runs are fully offline (the [`offline guard`](src/offline_guard.py) auto-flips `HF_HUB_OFFLINE=1` once the cache is populated). Confirmed by the BIS Hackathon organisers as the expected pattern.
 
 > 🖥 **Cross-hardware validated.** All three rulebook targets pass on both ends of the consumer-GPU range:
-> | Hardware | Hit@3 | MRR@5 | Avg Latency |
-> | --- | ---: | ---: | ---: |
-> | **RTX 5060 Ti (16 GB)** | 100% | 0.9333 | **0.45 s** |
-> | **GTX 1650 (4 GB) / CPU-only torch** | 100% | 0.9500 | **3.71 s** |
+> | Hardware | rerank_k | Hit@3 | MRR@5 | Avg Latency |
+> | --- | ---: | ---: | ---: | ---: |
+> | **RTX 5060 Ti (16 GB)** — dev rig | 25 (full) | 100% | 0.9333 | **0.45 s** |
+> | **RTX 2080 (8 GB)** — judges' rig (per organiser) | 25 (full) | 100%¹ | 0.9333¹ | **~0.7 s¹** |
+> | **GTX 1650 (4 GB) / CPU-only torch** | 3 (auto-clamped) | 100% | 0.9500 | **3.71 s** |
 >
-> The retriever auto-detects available VRAM and clamps the cross-encoder rerank pool (`rerank_k`) so latency stays under target without changing behaviour on capable hardware (override with `RERANK_K=N` or `RERANK_K_NO_AUTO=1`). Judges' machines don't need to match our dev rig — the system adapts.
+> ¹ projected from RTX 5060 Ti results — same pipeline + same pool=25, RTX 2080 ≈ 1.5× slower than 5060 Ti on transformer inference. Still 7× under the 5 s rulebook target.
+>
+> The retriever auto-detects compute and clamps the cross-encoder rerank pool (`rerank_k`) on lower-end hardware so latency stays under target without changing behaviour on capable hardware. Override with `RERANK_K=N` or disable with `RERANK_K_NO_AUTO=1`. The auto-clamp ladder:
+>
+> | Detected hardware | `rerank_k` |
+> | --- | ---: |
+> | GPU ≥ 7.5 GB VRAM | 25 (full quality) |
+> | GPU 5–7.5 GB VRAM | 18 |
+> | GPU 3.5–5 GB VRAM | 10 |
+> | GPU < 3.5 GB VRAM | 4 |
+> | CPU only (no CUDA) | 3 |
+>
+> Hit@3 is unchanged across all tiers (the gold standard is consistently in the top-3 of the fused list). MRR@5 swings ≤ 0.05 points across tiers.
 
 ---
 
@@ -72,15 +85,15 @@ python setup.py        # any OS (works if Python is on PATH)
 
 The script is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm.
 
-⏱ **Expected first-run time on a fresh machine:**
+⏱ **Expected first-run time on a fresh machine** (validated on a real fresh-clone test):
 
-| Setup | Total time |
-| --- | --- |
-| With HF token (recommended — `setup.py` will prompt for one) | **~5 min** |
-| Anonymous HuggingFace download (rate-limited) | **~20–25 min** |
-| Subsequent runs (everything cached, fully offline) | **~10 sec** |
+| Setup | Total time | Notes |
+| --- | --- | --- |
+| With HF token (`setup.py` prompts for a free one in 30 s) | **~5 min** | Recommended |
+| Anonymous HF download (rate-limited)                       | **~9–15 min** | Measured: **535 s on a laptop link** |
+| Subsequent runs (everything cached, fully offline)         | **~10 s**  | Idempotent — skips parse + index |
 
-The dominant cost is the one-time HuggingFace download. We pre-filter the download to SafeTensors only — skipping ONNX, PyTorch bin, and OpenVINO variants that the libraries don't use — which cuts the wire size from ~12 GB (full repos) to ~5 GB (SafeTensors only). With a free read-only HF token, that ~5 GB takes 3–5 minutes; anonymous it's 15–20 minutes due to HuggingFace's rate limiting.
+The dominant cost is the one-time HuggingFace download. We **pre-filter** the download to drop ONNX, OpenVINO, and redundant weight-format variants the libraries never use — keeping `model.safetensors` for `bge-reranker-v2-m3` and `pytorch_model.bin` for `bge-m3` (the only weight file that repo ships). This cuts wire size from ~12 GB (full repos) to ~5 GB without changing model behaviour. The two models download in **parallel** (`ThreadPoolExecutor`) with **`max_workers=16`** per-file concurrency. A post-download verifier checks both repos have a usable weight file before claiming step 2 done.
 
 What the script does, with progress and timing for every step:
 1. Pre-flight checks (Python version, free disk)
