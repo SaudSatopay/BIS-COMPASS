@@ -274,25 +274,79 @@ def preflight() -> None:
 TOTAL = 7
 
 
+def _ignore_patterns_for(model_id: str) -> list[str]:
+    """Per-model ignore list. CRITICAL: bge-m3 ships its weights ONLY in
+    `pytorch_model.bin` (no `model.safetensors`), so we must NOT filter
+    that file out for that repo. bge-reranker-v2-m3 has both formats so
+    we drop the .bin to avoid a redundant 2.3 GB download.
+
+    The earlier blanket ignore of pytorch_model.bin caused the prefetch
+    to silently complete with bge-m3 missing all weights, then crash at
+    warm-up with `OSError: no file named model.safetensors, or
+    pytorch_model.bin`. Caught only on cold-cache anonymous runs.
+    """
+    base = [
+        "*.onnx",
+        "onnx/*",
+        "onnx_*/*",
+        "openvino/*",
+        "openvino_*/*",
+        "*.msgpack",
+        "*.h5",
+        "*.gguf",
+        "model.bin",  # rare alternate name; never the canonical weight file we use
+    ]
+    # bge-m3 ships pytorch_model.bin ONLY — keep it.
+    # bge-reranker-v2-m3 ships both .bin and .safetensors — drop .bin.
+    if model_id == "BAAI/bge-m3":
+        return base
+    return base + ["pytorch_model.bin", "pytorch_model-*"]
+
+
+def _has_weights_in_cache(model_id: str) -> bool:
+    """Verify a usable weights file landed in the local cache after a
+    snapshot_download. Returns False if neither `model.safetensors` nor
+    `pytorch_model.bin` is present in any snapshot."""
+    try:
+        from huggingface_hub import scan_cache_dir  # noqa: PLC0415
+    except ImportError:
+        return True  # Optimistic — can't verify, assume ok
+    try:
+        info = scan_cache_dir()
+    except Exception:  # noqa: BLE001
+        return True
+    for repo in info.repos:
+        if repo.repo_id != model_id:
+            continue
+        for rev in repo.revisions:
+            names = {f.file_name for f in rev.files}
+            if "model.safetensors" in names or "pytorch_model.bin" in names:
+                return True
+    return False
+
+
 def step_prefetch_models(n: int):
     """Pre-fetch only the model files we actually need from HuggingFace,
     in parallel, with high per-file concurrency.
 
     Three optimisations stacked:
-      • ignore_patterns filter — drops ONNX, PyTorch bin, OpenVINO weight
-        formats we don't use. Cuts wire size from ~12 GB to ~5 GB.
-      • max_workers=16 — more concurrent file fetches per model (HF default
-        is 8). Helps with small-file overhead (configs, tokenizer files).
-      • ThreadPoolExecutor over the two models — bge-m3 and bge-reranker
-        download in parallel rather than serial. Cuts wall-clock by ~40-50%
-        when bandwidth isn't saturated by a single download.
+      • ignore_patterns filter (per-model — see _ignore_patterns_for) —
+        drops ONNX, OpenVINO, redundant weight formats. Cuts wire size
+        from ~12 GB to ~5 GB without dropping any file we need.
+      • max_workers=16 — more concurrent file fetches per model.
+      • ThreadPoolExecutor over both models — parallel download.
 
-    All three are pure delivery optimisations — same SafeTensors bytes
-    end up in the cache, model behaviour unchanged.
+    All three are pure delivery optimisations — same model bytes in the
+    cache, model behaviour unchanged.
+
+    POST-DOWNLOAD VERIFY: after each fetch we confirm a usable weight
+    file (.safetensors OR pytorch_model.bin) is in the cache. If not,
+    we fail loud here rather than crashing in step 6 with an opaque
+    transformers stack trace.
     """
     t = step(
         n, TOTAL,
-        "Pre-fetching HF models in parallel (filtered to SafeTensors, ~5 GB)",
+        "Pre-fetching HF models in parallel (filtered, ~5 GB)",
     )
     try:
         from huggingface_hub import snapshot_download  # noqa: PLC0415
@@ -302,20 +356,6 @@ def step_prefetch_models(n: int):
         print(color("yellow", "      (Models will still download, just unfiltered.)"))
         return
 
-    ignore_patterns = [
-        # Alternate weight formats we don't use (we read SafeTensors)
-        "*.onnx",
-        "onnx/*",
-        "onnx_*/*",
-        "openvino/*",
-        "openvino_*/*",
-        "pytorch_model.bin",
-        "pytorch_model-*",
-        "model.bin",
-        "*.msgpack",
-        "*.h5",
-        "*.gguf",
-    ]
     token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
     models = ("BAAI/bge-m3", "BAAI/bge-reranker-v2-m3")
 
@@ -323,26 +363,44 @@ def step_prefetch_models(n: int):
         try:
             snapshot_download(
                 repo_id=model_id,
-                ignore_patterns=ignore_patterns,
+                ignore_patterns=_ignore_patterns_for(model_id),
                 token=token,
-                max_workers=16,           # Option 3: more concurrent files
+                max_workers=16,
                 tqdm_class=None,
             )
+            # Verify that a usable weights file actually landed
+            if not _has_weights_in_cache(model_id):
+                return (
+                    model_id,
+                    False,
+                    "download succeeded but no model.safetensors / pytorch_model.bin "
+                    "found in cache (filter or revision issue)",
+                )
             return (model_id, True, "")
         except Exception as e:  # noqa: BLE001
             return (model_id, False, str(e))
 
-    print(color("dim", f"      starting both downloads in parallel..."))
-    # Option 1: parallel model downloads
+    print(color("dim", "      starting both downloads in parallel..."))
+    failures: list[tuple[str, str]] = []
     with ThreadPoolExecutor(max_workers=len(models)) as ex:
         futures = {ex.submit(_fetch, m): m for m in models}
         for fut in as_completed(futures):
             model_id, ok, err = fut.result()
             if ok:
-                print(color("green", f"      ✓ {model_id}"))
+                print(color("green", f"      OK  {model_id}"))
             else:
-                print(color("yellow", f"      WARNING: {model_id} failed: {err}"))
-                print(color("yellow", "      (Library-default download will retry on first model load.)"))
+                print(color("red", f"      FAIL {model_id}: {err}"))
+                failures.append((model_id, err))
+
+    if failures:
+        print()
+        print(color("red", "  Pre-fetch did not produce usable weights for:"))
+        for mid, err in failures:
+            print(color("red", f"    - {mid}: {err}"))
+        print(color("yellow", "  Setup will fail at the warm-up step. Aborting now so the"))
+        print(color("yellow", "  error surfaces here instead of inside transformers later."))
+        sys.exit(2)
+
     done(t)
 
 
