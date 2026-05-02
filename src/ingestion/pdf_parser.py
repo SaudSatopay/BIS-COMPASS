@@ -158,9 +158,24 @@ def _extract_scope(full_text: str) -> str:
 
 
 def main():
+    import os as _os
     pdf_path = Path("datasets/dataset.pdf")
     out_standards = Path("data/parsed_standards.json")
     out_whitelist = Path("data/is_code_whitelist.json")
+
+    # Idempotency: skip parse if both outputs already exist (they're committed
+    # in the repo so a fresh `git clone` already has them). Override with
+    # PARSER_FORCE=1.
+    if (
+        not _os.getenv("PARSER_FORCE")
+        and out_standards.exists()
+        and out_whitelist.exists()
+        and out_standards.stat().st_size > 1024
+        and out_whitelist.stat().st_size > 100
+    ):
+        print(f"Parsed standards already exist at {out_standards} — skipping parse.")
+        print("(Set PARSER_FORCE=1 to re-parse.)")
+        return
 
     standards = extract_standards(pdf_path)
     print(f"Extracted {len(standards)} standards from {pdf_path}")

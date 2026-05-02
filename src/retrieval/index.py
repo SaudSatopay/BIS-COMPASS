@@ -55,8 +55,25 @@ def build_embedding_text(s: dict) -> str:
     return "\n".join(parts)
 
 
-def build_index(standards_path: Path, out_dir: Path) -> None:
+def build_index(standards_path: Path, out_dir: Path, force: bool = False) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
+    out_idx = out_dir / INDEX_FILE
+    out_meta = out_dir / META_FILE
+
+    # Idempotency: skip if a non-empty index already exists. This file is
+    # committed in the repo so a fresh `git clone` already has it — there's
+    # no need to recompute embeddings (which on CPU takes ~7 min).
+    # Set force=True to override.
+    if (
+        not force
+        and out_idx.exists()
+        and out_meta.exists()
+        and out_idx.stat().st_size > 1024
+    ):
+        print(f"Dense index already exists at {out_idx} ({out_idx.stat().st_size:,} bytes) — skipping rebuild.")
+        print("(Set force=True or delete the file to recompute embeddings.)")
+        return
+
     with standards_path.open(encoding="utf-8") as f:
         standards = json.load(f)
 

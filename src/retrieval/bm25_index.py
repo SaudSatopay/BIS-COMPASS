@@ -39,15 +39,23 @@ def build_corpus_text(s: dict) -> str:
     return " ".join(parts)
 
 
-def build_index(standards_path: Path, out_dir: Path) -> None:
+def build_index(standards_path: Path, out_dir: Path, force: bool = False) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
+    out_idx = out_dir / INDEX_FILE
+
+    # Idempotency: skip if a non-empty index already exists. Committed in
+    # the repo so a fresh clone has it. Pass force=True to override.
+    if not force and out_idx.exists() and out_idx.stat().st_size > 1024:
+        print(f"BM25 index already exists at {out_idx} — skipping rebuild.")
+        return
+
     with standards_path.open(encoding="utf-8") as f:
         standards = json.load(f)
     docs_tokens = [tokenize(build_corpus_text(s)) for s in standards]
     bm25 = BM25Okapi(docs_tokens)
-    with (out_dir / INDEX_FILE).open("wb") as f:
+    with out_idx.open("wb") as f:
         pickle.dump({"bm25": bm25, "n_docs": len(docs_tokens)}, f)
-    print(f"BM25 index built ({len(docs_tokens)} docs) -> {out_dir / INDEX_FILE}")
+    print(f"BM25 index built ({len(docs_tokens)} docs) -> {out_idx}")
 
 
 class BM25Index:
