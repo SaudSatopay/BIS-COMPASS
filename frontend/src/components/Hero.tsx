@@ -185,6 +185,19 @@ export function Hero() {
         >
           Built solo · Team Sigma Squad · BIS Hackathon 2026
         </motion.div>
+
+        {/* Hardware validation badge */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.62 }}
+          className="mt-2.5 inline-flex items-center justify-center gap-2 text-[10.5px] font-mono tracking-wider text-muted-foreground/70"
+        >
+          <span className="size-1.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.7)]" />
+          <span className="uppercase">
+            Cross-validated on 3 consumer GPUs + CPU — all tiers pass &lt;5s target
+          </span>
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
