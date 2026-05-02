@@ -123,13 +123,17 @@ python -m venv venv
 source venv/bin/activate          # Linux / macOS
 # .\venv\Scripts\activate         # Windows PowerShell
 
-# CPU-only:
-pip install -r requirements.txt
-
-# Or GPU (NVIDIA Blackwell / Ada / Ampere): install torch first with CUDA 12.8
-pip install torch --index-url https://download.pytorch.org/whl/cu128
 pip install -r requirements.txt
 ```
+
+> **Note on torch wheel selection.** When you run the unified `setup.py` (recommended in §2.0), it auto-detects an NVIDIA GPU via `nvidia-smi` and installs the right torch wheel for you:
+> | Detected | torch wheel |
+> | --- | --- |
+> | NVIDIA GPU + driver | `cu118` (CUDA 11.8 — covers RTX 20-40xx, A-series) |
+> | No GPU | CPU wheel |
+> | Blackwell (RTX 50xx) | `cu118` doesn't ship for sm_120; install manually first: `pip install torch --index-url https://download.pytorch.org/whl/cu128`, then run `setup.py` |
+>
+> Skip the auto-install with `TORCH_NO_CUDA=1`. If you've installed torch yourself before running `setup.py`, the script detects it and leaves your install alone.
 
 ### 2.3 Build the indices (one-time, ~3 min including model download)
 

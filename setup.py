@@ -420,6 +420,31 @@ def _has_nvidia_gpu() -> bool:
         return False
 
 
+def _torch_status() -> tuple[bool, bool]:
+    """Return (installed, has_cuda). Subprocess so torch import doesn't
+    pollute setup.py's process — torch is heavy and we only need the
+    boolean. Times out at 30 s in case torch hangs on first import."""
+    try:
+        result = subprocess.run(
+            [
+                sys.executable, "-c",
+                "import sys; "
+                "import torch; "
+                "sys.stdout.write('YES|' + str(torch.cuda.is_available()))",
+            ],
+            capture_output=True,
+            timeout=30,
+            text=True,
+        )
+        if result.returncode == 0:
+            line = (result.stdout or "").strip()
+            if line.startswith("YES|"):
+                return (True, line == "YES|True")
+    except Exception:  # noqa: BLE001
+        pass
+    return (False, False)
+
+
 def _torch_pin_from_requirements() -> str:
     """Read the torch line from requirements.txt verbatim so we install the
     same version pin that the rest of the resolver expects."""
@@ -442,15 +467,45 @@ def step_install_deps(n: int):
         "pip self-upgrade",
     )
 
-    # Option 2: Pre-install torch with the right wheel for this hardware.
-    # On Linux, the default `pip install torch` pulls the CUDA-bundled
-    # wheel (~2.5 GB) regardless of whether a GPU is present. If we detect
-    # no NVIDIA GPU, force the explicit CPU wheel — saves ~2 GB of download
-    # and ~10 GB of unused CUDA libraries on disk. Same wheel API, same
-    # model behaviour. On Windows the default is already CPU, so this is
-    # a no-op there.
-    if not _has_nvidia_gpu():
-        torch_pin = _torch_pin_from_requirements()
+    # Pre-install torch with the right wheel for this hardware so that
+    # `pip install -r requirements.txt` (next step) sees torch already
+    # satisfied and doesn't download a wrong-architecture wheel.
+    #
+    # Three branches:
+    #   1. Already-installed CUDA torch  -> nothing to do
+    #   2. NVIDIA GPU available + need install -> CUDA 11.8 wheel (judge case)
+    #   3. No GPU, no torch yet                -> explicit CPU wheel
+    #
+    # cu118 (CUDA 11.8) is broadly compatible — works on Pascal / Volta /
+    # Turing / Ampere / Ada (RTX 20xx through RTX 40xx, A-series). Doesn't
+    # support Blackwell (RTX 50xx) which needs cu128 — those users should
+    # install torch manually first or set TORCH_NO_CUDA=1.
+    has_gpu = _has_nvidia_gpu()
+    torch_installed, torch_has_cuda = _torch_status()
+    skip_cuda = bool(os.getenv("TORCH_NO_CUDA"))
+    torch_pin = _torch_pin_from_requirements()
+
+    if has_gpu and torch_has_cuda:
+        print(color("dim", "      torch with CUDA already installed → skipping wheel pre-install"))
+    elif has_gpu and not skip_cuda:
+        print(
+            color(
+                "cyan",
+                f"      NVIDIA GPU detected → installing {torch_pin} with CUDA 11.8 (~2.5 GB)",
+            )
+        )
+        print(color("dim", "      cu118 covers Pascal / Volta / Turing / Ampere / Ada (RTX 20-40xx)."))
+        print(color("dim", "      Override: TORCH_NO_CUDA=1 to use CPU torch instead."))
+        run(
+            [
+                sys.executable, "-m", "pip", "install",
+                torch_pin,
+                "--index-url", "https://download.pytorch.org/whl/cu118",
+                "--quiet",
+            ],
+            "pip install torch (CUDA 11.8)",
+        )
+    elif not has_gpu and not torch_installed:
         print(
             color(
                 "dim",
@@ -467,6 +522,10 @@ def step_install_deps(n: int):
             ],
             "pip install torch (CPU)",
         )
+    elif not has_gpu and torch_installed:
+        # CPU machine + torch already installed (presumably from prior run).
+        # Leave it alone; requirements.txt will reconcile if needed.
+        print(color("dim", "      no GPU, torch already installed → leaving as-is"))
 
     print(color("dim", "      pip install -r requirements.txt ..."))
     run(
