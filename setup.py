@@ -476,10 +476,11 @@ def step_install_deps(n: int):
     #   2. NVIDIA GPU available + need install -> CUDA 11.8 wheel (judge case)
     #   3. No GPU, no torch yet                -> explicit CPU wheel
     #
-    # cu118 (CUDA 11.8) is broadly compatible — works on Pascal / Volta /
-    # Turing / Ampere / Ada (RTX 20xx through RTX 40xx, A-series). Doesn't
-    # support Blackwell (RTX 50xx) which needs cu128 — those users should
-    # install torch manually first or set TORCH_NO_CUDA=1.
+    # cu128 (CUDA 12.8) is the right wheel for torch 2.11.0 — older indexes
+    # like cu118 / cu121 don't ship 2.11.0. cu128 covers Turing / Ampere /
+    # Ada / Hopper / Blackwell (RTX 20xx through RTX 50xx, A-series, H-series)
+    # via NVIDIA's forward-compat. Requires NVIDIA driver >= 555 (2024+).
+    # Older drivers should set TORCH_NO_CUDA=1 to fall back to CPU torch.
     has_gpu = _has_nvidia_gpu()
     torch_installed, torch_has_cuda = _torch_status()
     skip_cuda = bool(os.getenv("TORCH_NO_CUDA"))
@@ -491,19 +492,19 @@ def step_install_deps(n: int):
         print(
             color(
                 "cyan",
-                f"      NVIDIA GPU detected → installing {torch_pin} with CUDA 11.8 (~2.5 GB)",
+                f"      NVIDIA GPU detected → installing {torch_pin} with CUDA 12.8 (~3 GB)",
             )
         )
-        print(color("dim", "      cu118 covers Pascal / Volta / Turing / Ampere / Ada (RTX 20-40xx)."))
+        print(color("dim", "      cu128 covers Turing / Ampere / Ada / Hopper / Blackwell (RTX 20-50xx)."))
         print(color("dim", "      Override: TORCH_NO_CUDA=1 to use CPU torch instead."))
         run(
             [
                 sys.executable, "-m", "pip", "install",
                 torch_pin,
-                "--index-url", "https://download.pytorch.org/whl/cu118",
+                "--index-url", "https://download.pytorch.org/whl/cu128",
                 "--quiet",
             ],
-            "pip install torch (CUDA 11.8)",
+            "pip install torch (CUDA 12.8)",
         )
     elif not has_gpu and not torch_installed:
         print(
