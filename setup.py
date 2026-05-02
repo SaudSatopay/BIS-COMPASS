@@ -236,6 +236,31 @@ def maybe_prompt_hf_token() -> None:
 # ----------------------------------------------------------------------
 # Pre-flight
 # ----------------------------------------------------------------------
+def _can_create_symlinks() -> bool:
+    """Test whether the current process can create symlinks.
+
+    On Windows this requires Developer Mode or admin privileges. On
+    Unix it's effectively always true. We test by actually creating
+    one in a temp directory rather than reading the registry — that
+    catches every edge case (Dev Mode, group policy overrides, FAT32
+    filesystems, container restrictions, etc.) at the cost of a few
+    millis of file I/O.
+    """
+    if platform.system() != "Windows":
+        return True
+    import tempfile  # noqa: PLC0415
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "_t"
+            target.write_text("ok", encoding="utf-8")
+            link = Path(tmp) / "_l"
+            link.symlink_to(target)
+            link.unlink()
+            return True
+    except (OSError, NotImplementedError, PermissionError):
+        return False
+
+
 def preflight() -> None:
     py = sys.version_info
     py_str = f"{py.major}.{py.minor}.{py.micro}"
@@ -252,6 +277,17 @@ def preflight() -> None:
         print()
     else:
         print(color("dim", f"  Python {py_str} ✓"))
+
+    # Adaptive HF downloader selection: HuggingFace's xet downloader uses
+    # symlinks for cross-revision deduplication. Stock Windows (no
+    # Developer Mode, no admin) can't create symlinks → xet sometimes
+    # crashes mid-download. If we can't create symlinks, force the
+    # legacy downloader. Linux / macOS / Win-with-Dev-Mode get xet.
+    if not _can_create_symlinks():
+        os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
+        print(color("dim", "  symlinks unavailable → disabling xet (legacy HF downloader)"))
+    else:
+        print(color("dim", "  symlinks supported ✓"))
 
     # Tiny disk-space check (not exhaustive — just a hint)
     try:
