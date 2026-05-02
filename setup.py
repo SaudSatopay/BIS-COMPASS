@@ -138,9 +138,10 @@ def all_exist(*paths: str) -> bool:
 # ----------------------------------------------------------------------
 # HuggingFace token prompt (optional, but big speedup)
 # ----------------------------------------------------------------------
-def _persist_hf_token(token: str) -> None:
-    """Save HF_TOKEN to .env so subsequent runs (and the FastAPI backend)
-    pick it up automatically. Idempotent — replaces any existing line."""
+def _persist_env_var(key: str, value: str) -> None:
+    """Save KEY=value to .env so subsequent processes (FastAPI backend,
+    inference.py, etc.) inherit it via python-dotenv. Idempotent —
+    replaces any existing line for the same key."""
     env_file = ROOT / ".env"
     lines: list[str] = []
     if env_file.exists():
@@ -148,9 +149,15 @@ def _persist_hf_token(token: str) -> None:
             lines = env_file.read_text(encoding="utf-8").splitlines()
         except Exception:  # noqa: BLE001
             lines = []
-    lines = [ln for ln in lines if not ln.strip().startswith("HF_TOKEN=")]
-    lines.append(f"HF_TOKEN={token}")
+    prefix = f"{key}="
+    lines = [ln for ln in lines if not ln.strip().startswith(prefix)]
+    lines.append(f"{key}={value}")
     env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _persist_hf_token(token: str) -> None:
+    """Backward-compat shim — now just delegates to _persist_env_var."""
+    _persist_env_var("HF_TOKEN", token)
 
 
 def maybe_prompt_hf_token() -> None:
@@ -244,7 +251,9 @@ def _can_create_symlinks() -> bool:
     one in a temp directory rather than reading the registry — that
     catches every edge case (Dev Mode, group policy overrides, FAT32
     filesystems, container restrictions, etc.) at the cost of a few
-    millis of file I/O.
+    millis of file I/O. The TemporaryDirectory auto-cleans, so we
+    don't need to manually unlink (which would itself raise if the
+    symlink_to call had failed).
     """
     if platform.system() != "Windows":
         return True
@@ -255,7 +264,6 @@ def _can_create_symlinks() -> bool:
             target.write_text("ok", encoding="utf-8")
             link = Path(tmp) / "_l"
             link.symlink_to(target)
-            link.unlink()
             return True
     except (OSError, NotImplementedError, PermissionError):
         return False
@@ -281,11 +289,18 @@ def preflight() -> None:
     # Adaptive HF downloader selection: HuggingFace's xet downloader uses
     # symlinks for cross-revision deduplication. Stock Windows (no
     # Developer Mode, no admin) can't create symlinks → xet sometimes
-    # crashes mid-download. If we can't create symlinks, force the
-    # legacy downloader. Linux / macOS / Win-with-Dev-Mode get xet.
+    # crashes mid-download with WinError 1314. If we can't create
+    # symlinks, force the legacy downloader AND persist that decision
+    # to .env so the backend / inference.py (separate processes) inherit
+    # it via python-dotenv. Otherwise setup.py works but the demo backend
+    # later hits the same crash on a model refresh.
     if not _can_create_symlinks():
-        os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
-        print(color("dim", "  symlinks unavailable → disabling xet (legacy HF downloader)"))
+        os.environ["HF_HUB_DISABLE_XET"] = "1"
+        try:
+            _persist_env_var("HF_HUB_DISABLE_XET", "1")
+        except Exception:  # noqa: BLE001
+            pass
+        print(color("dim", "  symlinks unavailable → disabling xet (legacy HF downloader, persisted to .env)"))
     else:
         print(color("dim", "  symlinks supported ✓"))
 

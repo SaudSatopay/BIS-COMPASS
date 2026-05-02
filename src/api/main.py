@@ -26,8 +26,16 @@ from src.offline_guard import enforce_offline_if_cached  # noqa: E402
 
 enforce_offline_if_cached()
 
-from src.llm.llm_client import LLMClient  # noqa: E402
+# IMPORT ORDER MATTERS. The retriever pulls in torch + transformers +
+# faiss; LLMClient pulls in google.genai (which itself drags in grpc /
+# protobuf). On some Windows configurations, loading google.genai BEFORE
+# torch leaves protobuf in a state that segfaults the C-extension
+# initialisation later in transformers. Importing torch/transformers
+# first via Retriever pins protobuf's symbol table the way native CUDA
+# code expects it, then google.genai is loaded into that environment
+# without conflict. Caught by a cold-clone demo-boot test on Windows.
 from src.retrieval.retriever import Retriever  # noqa: E402
+from src.llm.llm_client import LLMClient  # noqa: E402
 
 
 class SearchRequest(BaseModel):
