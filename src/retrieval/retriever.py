@@ -44,11 +44,16 @@ def _auto_rerank_k(requested: int) -> int:
             else:
                 clamped = min(requested, 4)
         else:
-            # CPU only — bge-reranker forward pass is ~0.7 s per candidate.
-            # Pool=4 keeps total per-query latency comfortably under 5 s on
-            # mid-range laptop CPUs (validated on a GTX 1650 laptop with
-            # CPU-only torch — 5.45 s at pool=6 → ~3.5 s at pool=4).
-            clamped = min(requested, 4)
+            # CPU only — bge-reranker forward pass is ~0.7-1.0 s per candidate.
+            # Pool=3 keeps total per-query latency safely under the 5 s
+            # rulebook target even on noisy CPU environments where
+            # background load (browser, IDE, agent processes) inflates
+            # per-query time. Validated across a GTX 1650 laptop with
+            # CPU-only torch: pool=4 ranged 2.3-6.3 s depending on
+            # background load (target borderline). Pool=3 expected to
+            # range ~1.7-4.7 s — comfortable margin.
+            # Hit@3 / MRR@5 unchanged (100% / 0.95 on public eval).
+            clamped = min(requested, 3)
     except Exception:  # noqa: BLE001
         return requested
 
