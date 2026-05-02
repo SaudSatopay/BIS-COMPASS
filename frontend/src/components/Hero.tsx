@@ -183,7 +183,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="mt-7 text-[10.5px] font-mono tracking-wider uppercase text-muted-foreground/55"
         >
-          Built solo · Team Sigma Squad · BIS Hackathon 2026
+          Built solo · Saud Satopay · BIS Hackathon 2026
         </motion.div>
 
         {/* Hardware validation badge */}
