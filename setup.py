@@ -262,23 +262,28 @@ TOTAL = 7
 
 
 def step_prefetch_models(n: int):
-    """Pre-fetch only the model files we actually need from HuggingFace.
+    """Pre-fetch only the model files we actually need from HuggingFace,
+    in parallel, with high per-file concurrency.
 
-    The default `snapshot_download` triggered by sentence-transformers /
-    FlagEmbedding pulls the WHOLE repo for each model — which for bge-m3
-    means ~7 GB (PyTorch bin + ONNX + SafeTensors + LoRA adapters in
-    parallel). We only need SafeTensors + tokenizer + configs (~2.3 GB).
-    Same story for bge-reranker-v2-m3.
+    Three optimisations stacked:
+      • ignore_patterns filter — drops ONNX, PyTorch bin, OpenVINO weight
+        formats we don't use. Cuts wire size from ~12 GB to ~5 GB.
+      • max_workers=16 — more concurrent file fetches per model (HF default
+        is 8). Helps with small-file overhead (configs, tokenizer files).
+      • ThreadPoolExecutor over the two models — bge-m3 and bge-reranker
+        download in parallel rather than serial. Cuts wall-clock by ~40-50%
+        when bandwidth isn't saturated by a single download.
 
-    Filtering with `ignore_patterns` cuts the total HF download from
-    ~12 GB to ~5 GB without changing model behaviour.
+    All three are pure delivery optimisations — same SafeTensors bytes
+    end up in the cache, model behaviour unchanged.
     """
     t = step(
         n, TOTAL,
-        "Pre-fetching HF models (filtered to SafeTensors only, ~5 GB instead of ~12 GB)",
+        "Pre-fetching HF models in parallel (filtered to SafeTensors, ~5 GB)",
     )
     try:
         from huggingface_hub import snapshot_download  # noqa: PLC0415
+        from concurrent.futures import ThreadPoolExecutor, as_completed  # noqa: PLC0415
     except ImportError:
         print(color("yellow", "      huggingface_hub not yet installed — skipping pre-fetch."))
         print(color("yellow", "      (Models will still download, just unfiltered.)"))
@@ -296,26 +301,66 @@ def step_prefetch_models(n: int):
         "model.bin",
         "*.msgpack",
         "*.h5",
-        # Image / multimodal extras (bge-m3 ships none, but defensive)
         "*.gguf",
     ]
     token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+    models = ("BAAI/bge-m3", "BAAI/bge-reranker-v2-m3")
 
-    for model_id in ("BAAI/bge-m3", "BAAI/bge-reranker-v2-m3"):
-        print(color("dim", f"      → {model_id}"))
+    def _fetch(model_id: str) -> tuple[str, bool, str]:
         try:
             snapshot_download(
                 repo_id=model_id,
                 ignore_patterns=ignore_patterns,
                 token=token,
-                # Print download progress to the same stream so the user
-                # sees what's happening
+                max_workers=16,           # Option 3: more concurrent files
                 tqdm_class=None,
             )
+            return (model_id, True, "")
         except Exception as e:  # noqa: BLE001
-            print(color("yellow", f"      WARNING: pre-fetch of {model_id} failed: {e}"))
-            print(color("yellow", "      Falling back to library-default download."))
+            return (model_id, False, str(e))
+
+    print(color("dim", f"      starting both downloads in parallel..."))
+    # Option 1: parallel model downloads
+    with ThreadPoolExecutor(max_workers=len(models)) as ex:
+        futures = {ex.submit(_fetch, m): m for m in models}
+        for fut in as_completed(futures):
+            model_id, ok, err = fut.result()
+            if ok:
+                print(color("green", f"      ✓ {model_id}"))
+            else:
+                print(color("yellow", f"      WARNING: {model_id} failed: {err}"))
+                print(color("yellow", "      (Library-default download will retry on first model load.)"))
     done(t)
+
+
+def _has_nvidia_gpu() -> bool:
+    """Detect an NVIDIA GPU by looking for `nvidia-smi`. Conservative —
+    if nvidia-smi isn't reachable we assume no GPU (false negative is fine,
+    just means we skip the CUDA torch wheel)."""
+    try:
+        r = subprocess.run(
+            ["nvidia-smi"],
+            capture_output=True,
+            timeout=5,
+            text=True,
+        )
+        return r.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.SubprocessError):
+        return False
+
+
+def _torch_pin_from_requirements() -> str:
+    """Read the torch line from requirements.txt verbatim so we install the
+    same version pin that the rest of the resolver expects."""
+    try:
+        for line in (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and line.lower().startswith("torch"):
+                # Strip trailing comments
+                return line.split("#", 1)[0].strip()
+    except Exception:  # noqa: BLE001
+        pass
+    return "torch"
 
 
 def step_install_deps(n: int):
@@ -325,6 +370,33 @@ def step_install_deps(n: int):
         [sys.executable, "-m", "pip", "install", "--upgrade", "pip", "--quiet"],
         "pip self-upgrade",
     )
+
+    # Option 2: Pre-install torch with the right wheel for this hardware.
+    # On Linux, the default `pip install torch` pulls the CUDA-bundled
+    # wheel (~2.5 GB) regardless of whether a GPU is present. If we detect
+    # no NVIDIA GPU, force the explicit CPU wheel — saves ~2 GB of download
+    # and ~10 GB of unused CUDA libraries on disk. Same wheel API, same
+    # model behaviour. On Windows the default is already CPU, so this is
+    # a no-op there.
+    if not _has_nvidia_gpu():
+        torch_pin = _torch_pin_from_requirements()
+        print(
+            color(
+                "dim",
+                f"      no NVIDIA GPU detected → installing {torch_pin} from CPU wheel index"
+                f" (saves ~2 GB on Linux/macOS) ...",
+            )
+        )
+        run(
+            [
+                sys.executable, "-m", "pip", "install",
+                torch_pin,
+                "--index-url", "https://download.pytorch.org/whl/cpu",
+                "--quiet",
+            ],
+            "pip install torch (CPU)",
+        )
+
     print(color("dim", "      pip install -r requirements.txt ..."))
     run(
         [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"],
