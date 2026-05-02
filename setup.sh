@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 # ============================================================================
-#   BIS Compass - one-command setup (Linux / macOS)
-#   Delegates to setup.py so logic is shared with Windows (setup.bat).
+#   BIS Compass - one-command setup + demo boot (Linux / macOS)
+#
+#   Calls setup.py (env setup + indices + eval), then start.py (boots
+#   the FastAPI backend and Next.js frontend, opens browser).
+#
+#   First run on a fresh machine:  ~5-7 min
+#   Subsequent runs:               ~10 s + frontend boot (~5 s)
+#
+#   To run ONLY setup (no demo boot):
+#     python3 setup.py
+#
+#   To run ONLY the demo (assumes setup is done):
+#     python3 start.py
 # ============================================================================
 set -e
 
-# Prefer python3, fall back to python
 if command -v python3 >/dev/null 2>&1; then
     PY=python3
 elif command -v python >/dev/null 2>&1; then
@@ -16,4 +26,10 @@ else
 fi
 
 cd "$(dirname "$0")"
-exec "$PY" setup.py
+
+"$PY" setup.py
+
+echo
+echo "Setup complete. Booting demo..."
+echo
+exec "$PY" start.py

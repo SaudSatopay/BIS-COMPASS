@@ -69,9 +69,9 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 
 ## 2 · Reproducing our results
 
-### 2.0 One-command setup — recommended for judges
+### 2.0 One-command setup + demo boot — recommended for judges
 
-Pick the entry point for your OS — all three execute the same `setup.py` so behaviour is identical:
+A single command sets up the environment, scores the public eval, AND boots the demo UI in your browser. Pick the entry point for your OS:
 
 ```cmd
 setup.bat              :: Windows (double-click or run in cmd)
@@ -79,11 +79,15 @@ setup.bat              :: Windows (double-click or run in cmd)
 ```bash
 bash setup.sh          # macOS / Linux
 ```
+
+The Windows / Unix wrappers call `setup.py` then `start.py` in sequence. To run them separately (e.g., setup-only on a CI box, or boot the demo without re-running setup), invoke the Python scripts directly:
+
 ```bash
-python setup.py        # any OS (works if Python is on PATH)
+python setup.py        # one-shot env setup + indices + eval, then exits
+python start.py        # boot backend on :8000 + frontend on :3000
 ```
 
-The script is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm.
+`setup.py` is **idempotent** — it skips PDF parsing and index builds if their output files already exist, so re-running takes ~10 s once the cache is warm.
 
 ⏱ **Expected first-run time on a fresh machine** (validated on a real fresh-clone test):
 
@@ -197,16 +201,12 @@ Avg Latency             : 0.47 sec  (Target: <5 seconds)
 
 The judge eval is fully decoupled from the demo, but the UI is what tells the story.
 
-### 3.0 One-command boot
+### 3.0 Boot the demo
 
-```cmd
-start.bat              :: Windows
-```
+The single-command `setup.bat` / `setup.sh` from §2.0 already boots the demo at the end. To re-boot it later (e.g., after `Ctrl+C`) without re-running setup:
+
 ```bash
-bash start.sh          # macOS / Linux
-```
-```bash
-python start.py        # any OS
+python start.py        # any OS — boots backend on :8000 + frontend on :3000
 ```
 
 Brings up both servers, waits until they're reachable, opens `http://localhost:3000` in your default browser, and stays in the foreground until `Ctrl+C`. On first run it also auto-installs frontend `node_modules` and builds the production bundle.
@@ -257,12 +257,10 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 .
 ├── inference.py                ← MANDATORY judge entry point (--input, --output)
 ├── eval_script.py              ← MANDATORY (provided by organisers, copied verbatim)
-├── setup.py                    ← one-command env setup (deps + indices + warm-up + score), cross-platform
-├── setup.bat                   ← Windows shortcut to setup.py (double-clickable)
-├── setup.sh                    ← macOS / Linux shortcut to setup.py
+├── setup.py                    ← env setup (deps + indices + warm-up + score), cross-platform
 ├── start.py                    ← boot the demo (backend on :8000 + frontend on :3000), cross-platform
-├── start.bat                   ← Windows shortcut to start.py
-├── start.sh                    ← macOS / Linux shortcut to start.py
+├── setup.bat                   ← Windows: runs setup.py then start.py in one command
+├── setup.sh                    ← macOS / Linux: runs setup.py then start.py in one command
 ├── requirements.txt
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
