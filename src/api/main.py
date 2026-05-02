@@ -16,7 +16,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 load_dotenv()
 
@@ -39,8 +39,8 @@ from src.llm.llm_client import LLMClient  # noqa: E402
 
 
 class SearchRequest(BaseModel):
-    query: str
-    top_k: int = 5
+    query: str = Field(..., min_length=1, max_length=2000)
+    top_k: int = Field(5, ge=1, le=20)
     rewrite: bool = True
     rationales: bool = True
     hyde: bool = False         # opt-in: HyDE adds 1 LLM call (~700ms)
@@ -116,15 +116,31 @@ async def lifespan(app: FastAPI):
         print(f"[api] Loaded {len(STATE['xrefs'])} cross-reference entries")
     else:
         STATE["xrefs"] = {}
+    # Eager-load standards-by-code map. Doing this here (rather than
+    # lazily in get_standard) avoids a thundering-herd race where two
+    # concurrent first-time hits both parse the 5 MB JSON.
+    standards_path = Path("data/parsed_standards.json")
+    if standards_path.exists():
+        records = _json.loads(standards_path.read_text(encoding="utf-8"))
+        STATE["standards_by_code"] = {s["is_code"]: s for s in records}
+        print(f"[api] Loaded {len(STATE['standards_by_code'])} standards into lookup map")
+    else:
+        STATE["standards_by_code"] = {}
     yield
 
 
 app = FastAPI(title="BIS RAG Recommender", version="1.0", lifespan=lifespan)
+# CORS: restrict to localhost only. The demo UI lives on :3000 same machine.
+# Wide-open origins would let any LAN peer / visited website spend the
+# user's HF / Gemini / Groq keys via this local backend's /search endpoint.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 
@@ -152,38 +168,40 @@ class StandardDetail(BaseModel):
     categories: list[str]
 
 
-_STANDARDS_BY_CODE: dict[str, dict] | None = None
+# IS code shape: "IS 269: 1989", "IS 2185 (Part 1): 1979", etc.
+# Restrict the URL parameter to this pattern so arbitrary input
+# (path traversal probes, reflected-XSS smells) never reaches the
+# lookup. Whitespace-tolerant.
+import re as _re_mod  # noqa: E402
+
+_IS_CODE_RE = _re_mod.compile(
+    r"^IS\s*\d+(?:\s*\(Part\s*\d+(?:/\s*Sec\s*\d+)?\))?\s*:\s*\d{4}$",
+    _re_mod.IGNORECASE,
+)
 
 
-def _load_standards() -> dict[str, dict]:
-    global _STANDARDS_BY_CODE
-    if _STANDARDS_BY_CODE is None:
-        import json as _json
-        path = Path("data/parsed_standards.json")
-        if not path.exists():
-            _STANDARDS_BY_CODE = {}
-        else:
-            data = _json.loads(path.read_text(encoding="utf-8"))
-            _STANDARDS_BY_CODE = {s["is_code"]: s for s in data}
-    return _STANDARDS_BY_CODE
-
-
-@app.get("/standards/{is_code:path}", response_model=StandardDetail)
+@app.get("/standards/{is_code}", response_model=StandardDetail)
 def get_standard(is_code: str):
-    """Fetch the full record for one IS code (used by the detail modal)."""
+    """Fetch the full record for one IS code (used by the detail modal).
+
+    is_code must match the IS-code grammar — invalid input gets a generic
+    404 without echoing the user-supplied string back.
+    """
     from fastapi import HTTPException
-    standards = _load_standards()
+    if not _IS_CODE_RE.match(is_code or ""):
+        raise HTTPException(404, "IS code not found")
+
+    standards = STATE.get("standards_by_code") or {}
     s = standards.get(is_code)
     if not s:
         # Tolerant lookup — match by normalised form
-        import re as _re
-        norm = _re.sub(r"\s+", "", is_code).lower()
+        norm = _re_mod.sub(r"\s+", "", is_code).lower()
         for code, rec in standards.items():
             if rec.get("is_code_norm") == norm:
                 s = rec
                 break
     if not s:
-        raise HTTPException(404, f"IS code not found: {is_code}")
+        raise HTTPException(404, "IS code not found")
     related = (STATE.get("xrefs") or {}).get(s["is_code"], [])
     from src.retrieval.metadata import detect_categories
     blob = f"{s['title']} {s.get('scope') or ''}"
@@ -362,7 +380,11 @@ def search(req: SearchRequest) -> SearchResponse:
 def main():
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Bind 127.0.0.1, not 0.0.0.0 — the demo backend should be reachable
+    # only from the same machine. Override with HOST=0.0.0.0 if you really
+    # need LAN access (e.g., remote demo screensharing).
+    host = os.getenv("HOST", "127.0.0.1")
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":

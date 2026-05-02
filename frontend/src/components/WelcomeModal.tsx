@@ -69,13 +69,51 @@ export function WelcomeModal() {
     dismiss();
   };
 
+  // Defensive cleanup: copy-paste from chat / Notion / docs often picks
+  // up surrounding quotes (smart and straight), zero-width characters
+  // (U+200B-D, U+FEFF BOM), and stray whitespace. The backend rejects
+  // these as 400 INVALID_ARGUMENT and the user sees a confusing
+  // "rate_limited" error instead of "your key has weird chars". Strip
+  // them here so what we store is what gets sent.
+  const sanitizeKey = (raw: string): string => {
+    return raw
+      .trim()
+      .replace(/^["'“”‘’]+|["'“”‘’]+$/g, "")
+      .replace(/[​-‍﻿]/g, "")
+      .replace(/\s+/g, "")
+      .trim();
+  };
+
+  // HF / Gemini / Groq keys are all base64-style: alphanumerics, dashes,
+  // underscores. 20 chars is shorter than any real key by a wide margin.
+  const looksLikeKey = (k: string): boolean => /^[A-Za-z0-9_-]{20,}$/.test(k);
+
+  const [keyError, setKeyError] = useState<string | null>(null);
+
   const save = () => {
     setSaving(true);
-    if (gemini.trim()) {
-      window.localStorage.setItem(GEMINI_LS_KEY, gemini.trim());
+    setKeyError(null);
+    const cleanGemini = sanitizeKey(gemini);
+    const cleanGroq = sanitizeKey(groq);
+    if (cleanGemini && !looksLikeKey(cleanGemini)) {
+      setKeyError(
+        "Gemini key looks malformed (expected base64-style, 20+ chars). Re-paste it and try again.",
+      );
+      setSaving(false);
+      return;
     }
-    if (groq.trim()) {
-      window.localStorage.setItem(GROQ_LS_KEY, groq.trim());
+    if (cleanGroq && !looksLikeKey(cleanGroq)) {
+      setKeyError(
+        "Groq key looks malformed (expected base64-style, 20+ chars). Re-paste it and try again.",
+      );
+      setSaving(false);
+      return;
+    }
+    if (cleanGemini) {
+      window.localStorage.setItem(GEMINI_LS_KEY, cleanGemini);
+    }
+    if (cleanGroq) {
+      window.localStorage.setItem(GROQ_LS_KEY, cleanGroq);
     }
     dismiss();
     setSaving(false);
@@ -217,6 +255,13 @@ export function WelcomeModal() {
                   search. Nothing is logged or transmitted anywhere else.
                 </p>
               </div>
+
+              {/* validation error */}
+              {keyError && (
+                <p className="mt-4 text-xs text-red-400 leading-relaxed">
+                  {keyError}
+                </p>
+              )}
 
               {/* actions */}
               <div className="mt-6 flex flex-col-reverse sm:flex-row gap-2.5 justify-end">

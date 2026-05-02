@@ -55,7 +55,12 @@ def _auto_rerank_k(requested: int) -> int:
             # Hit@3 / MRR@5 unchanged (100% / 0.95 on public eval).
             clamped = min(requested, 3)
     except Exception:  # noqa: BLE001
-        return requested
+        # On any introspection failure (driver hiccup, hot-unplug, weird
+        # VRAM detection, torch import error), fall back to a small pool
+        # rather than the full 25. A 4-GB card with a flaky driver would
+        # OOM mid-rerank if we trusted requested=25. Pool=4 is small
+        # enough to fit on any CUDA-capable consumer card AND fast on CPU.
+        return min(requested, 4)
 
     if clamped != requested:
         print(

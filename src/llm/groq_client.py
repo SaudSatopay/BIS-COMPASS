@@ -150,7 +150,9 @@ class GroqClient:
         except RateLimitError:
             raise
         except APIStatusError as e:
-            print(f"[groq] API error: {e.status_code} {e.message[:150] if hasattr(e, 'message') else e}")
+            # e.message can be None on some Groq error shapes; fall back to str(e)
+            msg = (getattr(e, "message", None) or str(e))[:150]
+            print(f"[groq] API error: {getattr(e, 'status_code', '?')} {msg}")
             return None
         except Exception as e:
             print(f"[groq] generate_content failed: {e}")

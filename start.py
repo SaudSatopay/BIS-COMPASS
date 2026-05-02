@@ -124,11 +124,24 @@ processes: list[subprocess.Popen] = []
 
 
 def cleanup() -> None:
+    """Kill the whole subprocess tree.
+
+    On Windows, npm.cmd forks a node next-server grandchild. Sending
+    CTRL_BREAK_EVENT only reaches cmd.exe; node survives and keeps
+    :3000 bound so the next start.py run dies with EADDRINUSE.
+    `taskkill /F /T /PID` recursively kills the entire tree by PID,
+    which catches grandchildren too.
+    """
     for p in processes:
         if p.poll() is None:
             try:
                 if IS_WINDOWS:
-                    p.send_signal(signal.CTRL_BREAK_EVENT)  # type: ignore[attr-defined]
+                    # Recursive tree kill — guarantees node grandchildren die.
+                    subprocess.run(
+                        ["taskkill", "/F", "/T", "/PID", str(p.pid)],
+                        capture_output=True,
+                        timeout=10,
+                    )
                 else:
                     p.terminate()
                 p.wait(timeout=5)
@@ -154,17 +167,31 @@ def spawn(cmd: list[str], cwd: Path | None = None) -> subprocess.Popen:
     return p
 
 
-def wait_url(url: str, timeout: float = 120.0) -> bool:
+def wait_url(url: str, timeout: float = 120.0, label: str = "") -> bool:
+    """Poll a URL until it answers, with a 'still loading' tick every 30 s.
+
+    On a cold-cache RTX 2080 the first model load can cross 90-150 s
+    (CUDA kernel JIT + cuDNN autotune for bge-m3 + bge-reranker), so
+    callers should pass timeout >= 300 s for the backend.
+    """
     import urllib.error
     import urllib.request
 
     start = time.time()
+    last_tick = start
     while time.time() - start < timeout:
         try:
             urllib.request.urlopen(url, timeout=2)
             return True
         except (urllib.error.URLError, ConnectionError, TimeoutError):
             pass
+        # Heartbeat every 30 s so the user knows we haven't hung
+        now = time.time()
+        if now - last_tick >= 30:
+            elapsed = int(now - start)
+            tag = f" ({label})" if label else ""
+            print(color("dim", f"  still loading{tag}... {elapsed}s elapsed"))
+            last_tick = now
         time.sleep(1)
     return False
 
@@ -190,14 +217,17 @@ def main() -> None:
     spawn(["npm", "start"], cwd=ROOT / "frontend")
 
     print()
-    print(color("dim", "  Waiting for backend (model load: ~30 s on first hot run)..."))
-    if not wait_url("http://localhost:8000/health", timeout=180):
-        print(color("red", "✗ Backend didn't come up within 3 minutes — check its terminal output."))
+    print(color("dim", "  Waiting for backend (cold-start model load can take 1-3 min on consumer GPUs)..."))
+    # 5 min timeout: cold-cache RTX 2080 cuDNN autotune + bge-m3 + bge-reranker
+    # init crosses 90-150 s in our measurements. Headroom for slower disks
+    # / contended GPUs prevents false failures.
+    if not wait_url("http://localhost:8000/health", timeout=300, label="backend"):
+        print(color("red", "✗ Backend didn't come up within 5 minutes — check its terminal output."))
         sys.exit(1)
     print(color("green", "  ✓ Backend ready"))
 
     print(color("dim", "  Waiting for frontend..."))
-    if not wait_url("http://localhost:3000", timeout=60):
+    if not wait_url("http://localhost:3000", timeout=60, label="frontend"):
         print(color("red", "✗ Frontend didn't come up within 1 minute."))
         sys.exit(1)
     print(color("green", "  ✓ Frontend ready"))

@@ -45,6 +45,8 @@ export async function search(
   opts: { rewrite?: boolean; rationales?: boolean; top_k?: number } = {},
 ): Promise<SearchResponse> {
   const keys = readBrowserKeys();
+  // 60 s timeout: cold-cache backends can take ~30 s on first query.
+  // Beyond that we'd rather show a clear error than spin forever.
   const res = await fetch(`${API_BASE}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,6 +59,7 @@ export async function search(
       groq_api_key: keys.groq,
     }),
     cache: "no-store",
+    signal: AbortSignal.timeout(60_000),
   });
   if (!res.ok) {
     const text = await res.text();
@@ -72,14 +75,31 @@ export type HealthInfo = {
   gemini: boolean;
 };
 
+/**
+ * Probe the backend health endpoint. Retries 3× with linear backoff so a
+ * cold-start backend (still loading models) doesn't trigger the
+ * "no LLM providers" path in the welcome modal.
+ *
+ * Returns null only if all retries fail — meaning the backend is genuinely
+ * unreachable, not just slow to start.
+ */
 export async function health(): Promise<HealthInfo | null> {
-  try {
-    const res = await fetch(`${API_BASE}/health`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(`${API_BASE}/health`, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(5_000),
+      });
+      if (!res.ok) {
+        if (attempt < 2) await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+        continue;
+      }
+      return await res.json();
+    } catch {
+      if (attempt < 2) await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+    }
   }
+  return null;
 }
 
 export const SAMPLE_QUERIES = [
