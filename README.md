@@ -112,9 +112,13 @@ If you'd rather run the steps individually, §2.2–§2.5 below walks through th
 
 ### 2.1 Prerequisites
 
+> 📋 **Full system requirements** (OS, hardware, drivers, disk, network, tokens) are documented separately in [`SYSTEM_REQUIREMENTS.txt`](SYSTEM_REQUIREMENTS.txt). The bullets below are the headline-level minimums.
+
 * **Python 3.10–3.12** (validated). 3.13 may work; 3.14+ has incomplete ML-wheel coverage (numpy 2.2.6 / torch 2.11.0 don't yet ship Python 3.14 wheels — `setup.py` will warn).
 * **Node.js ≥ 20.10** (Next.js 16 requires it). The frontend's `npm install` in `start.py` will pull what's needed.
 * **NVIDIA GPU with driver ≥ 555** (optional but recommended). `setup.py` auto-detects via `nvidia-smi` and installs the `cu128` torch wheel — covers Turing / Ampere / Ada / Hopper / Blackwell (RTX 20-50xx). On a CPU-only box the CPU torch wheel installs instead and the auto-clamp ladder shrinks the rerank pool to keep per-query latency under target.
+* **Disk ~10 GB free** (venv + HuggingFace model cache + pip wheel cache).
+* **Internet** for first-time setup (HF model download, pip / npm packages). `inference.py` is fully offline once the cache is warm.
 
 ### 2.2 Install
 
@@ -344,7 +348,8 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 ├── start.py                    ← boot the demo (backend on :8000 + frontend on :3000), cross-platform
 ├── setup.bat                   ← Windows: runs setup.py then start.py in one command
 ├── setup.sh                    ← macOS / Linux: runs setup.py then start.py in one command
-├── requirements.txt
+├── requirements.txt            ← Python package versions (pip-installed by setup.py)
+├── SYSTEM_REQUIREMENTS.txt     ← OS / hardware / driver / disk / network prerequisites
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
 │

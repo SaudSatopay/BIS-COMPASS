@@ -1,0 +1,137 @@
+================================================================================
+  BIS Compass — System Requirements
+================================================================================
+  This file lists the OS / hardware / runtime prerequisites for running
+  the project. Python package dependencies live in `requirements.txt`
+  and are installed automatically by `setup.py`.
+================================================================================
+
+
+OPERATING SYSTEM
+--------------------------------------------------------------------------------
+  Validated:
+    - Windows 10 / 11 (x86_64)
+    - Linux (Ubuntu 22.04+, Debian 12+, x86_64)
+    - macOS 13+ (Apple Silicon and Intel)
+
+  Notes for Windows users:
+    - The Microsoft Store python.exe stub will NOT work. Install Python
+      from https://www.python.org/downloads/ with "Add to PATH" checked.
+      `setup.bat` automatically rejects the WindowsApps stub if found.
+    - HuggingFace Xet downloader uses symlinks; on Windows without
+      Developer Mode, `setup.py` empirically detects this and falls
+      back to the legacy downloader automatically (no action needed).
+
+
+PYTHON
+--------------------------------------------------------------------------------
+  Required:    Python 3.10, 3.11, or 3.12 (validated)
+  Acceptable:  Python 3.13 (untested but should work)
+  Not yet supported:
+               Python 3.14+ — numpy 2.2.6 / torch 2.11.0 don't ship
+               cp314 wheels yet, so source build attempts fail without
+               a C compiler. `setup.py` warns when 3.14+ is detected.
+
+
+NODE.JS  (only needed for the demo UI; not for `inference.py`)
+--------------------------------------------------------------------------------
+  Required:    Node.js >= 20.10  (Next.js 16 minimum)
+  Recommended: Node.js LTS (20.x or 22.x)
+  Get it:      https://nodejs.org/
+
+
+HARDWARE
+--------------------------------------------------------------------------------
+  CPU:    Any 64-bit x86 or ARM (Apple Silicon).
+          Modern i5 / Ryzen 5 or better recommended.
+          On CPU-only the auto-clamp ladder reduces the cross-encoder
+          rerank pool (rerank_k=3) so per-query latency stays under
+          the 5 s rulebook target.
+
+  RAM:    8 GB minimum (CPU-only inference)
+          16 GB recommended (with GPU torch + browser running)
+
+  GPU:    Optional but recommended for sub-second per-query latency.
+          NVIDIA GPU with:
+            * Driver >= 555  (released 2024 — required for CUDA 12.8)
+            * Any CUDA-capable consumer card from Pascal (GTX 10xx) on:
+              - GTX 16xx / RTX 20xx (Turing)
+              - RTX 30xx (Ampere)
+              - RTX 40xx (Ada)
+              - RTX 50xx (Blackwell)
+              - A-series, H-series workstation / data centre cards
+
+          `setup.py` auto-installs `torch==2.11.0+cu128` when an
+          NVIDIA GPU is detected. Override with `TORCH_NO_CUDA=1` to
+          force the CPU wheel instead (e.g., on driver < 555).
+
+          Validated configurations (full eval passes targets on all):
+            * RTX 5060 Ti 16 GB (Blackwell)        : Hit@3 100% / MRR 0.93 / 0.45 s
+            * RTX 2080      8 GB (Turing) [judge]  : Hit@3 100% / MRR 0.93 / ~0.7 s (projected)
+            * GTX 1650      4 GB (Turing, GPU torch): Hit@3 100% / MRR 0.95 / 1.05 s
+            * GTX 1650      4 GB (CPU torch fallback): Hit@3 100% / MRR 0.95 / 3.71 s
+            * Pure CPU (i5+ class)                 : Hit@3 100% / MRR 0.95 / ~3-4 s
+
+  Disk:   ~10 GB free for:
+            * Python virtual environment           ~1 GB
+            * HuggingFace model cache              ~5 GB (bge-m3 + bge-reranker-v2-m3)
+            * pip wheel cache (torch CUDA wheel)   ~3 GB
+            * Repo + indices + node_modules        ~1 GB
+
+
+NETWORK
+--------------------------------------------------------------------------------
+  Internet access required:
+    - During first-time setup (model download from HuggingFace,
+      pip wheel downloads from PyPI, npm packages from npm registry)
+
+  Internet access optional (but recommended for the demo UI):
+    - Gemini / Groq API for AI rationale + query expansion in the
+      demo UI. Not required for `inference.py` (the eval entry point).
+      `inference.py` makes ZERO network calls once the HF cache is warm
+      (offline_guard auto-flips HF_HUB_OFFLINE=1).
+
+  Tokens (all free, all optional):
+    - HF_TOKEN: optional but recommended.
+                  Without:  ~5 GB HF download takes 15-25 min anonymous
+                  With:     same download in 3-5 min
+                Get one in 30 s at https://huggingface.co/settings/tokens
+                `setup.py` prompts for one on first run.
+
+    - GEMINI_API_KEY: optional. Enables the demo UI's AI rationale layer.
+                Get one at https://aistudio.google.com/apikey
+
+    - GROQ_API_KEY: optional fallback for Gemini quota / rate-limits.
+                Get one at https://console.groq.com/keys
+
+
+SETUP TIME ON A FRESH MACHINE
+--------------------------------------------------------------------------------
+  Best case   (HF token + fast link + GPU)         : ~5 min
+  Typical case (judge's RTX 2080 + average link)   : ~8-12 min
+  Worst case  (anonymous + slow link + CPU)        : ~17-20 min
+  Subsequent runs (everything cached)              : ~10 sec
+
+
+WHAT'S NOT REQUIRED
+--------------------------------------------------------------------------------
+  * No Docker, no Kubernetes, no cloud account.
+  * No system-level CUDA toolkit install — torch ships its own bundled
+    libraries.
+  * No C / C++ compiler — all dependencies have pre-built wheels for
+    supported Python versions.
+  * No Visual Studio Build Tools (Windows).
+  * No Microsoft Store, no Anaconda — vanilla Python from python.org
+    is sufficient.
+
+
+HOW THIS RELATES TO THE FILES
+--------------------------------------------------------------------------------
+  This file:               System / OS / hardware / runtime prereqs
+  requirements.txt:        Python package versions (installed by setup.py)
+  frontend/package.json:   Node.js dependencies (installed by start.py)
+  setup.py:                Validates Python version + auto-detects GPU
+  setup.bat / setup.sh:    OS-native wrappers around setup.py + start.py
+
+
+For full setup instructions, see README.md §2 ("Reproducing our results").
