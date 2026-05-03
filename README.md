@@ -112,8 +112,9 @@ If you'd rather run the steps individually, §2.2–§2.5 below walks through th
 
 ### 2.1 Prerequisites
 
-* Python **3.10+**
-* (Optional, recommended) NVIDIA GPU with CUDA 12.4+ — we developed on an RTX 5060 Ti (16 GB, Blackwell). CPU also works (slower, ~3 s per query instead of 0.5 s).
+* **Python 3.10–3.12** (validated). 3.13 may work; 3.14+ has incomplete ML-wheel coverage (numpy 2.2.6 / torch 2.11.0 don't yet ship Python 3.14 wheels — `setup.py` will warn).
+* **Node.js ≥ 20.10** (Next.js 16 requires it). The frontend's `npm install` in `start.py` will pull what's needed.
+* **NVIDIA GPU with driver ≥ 555** (optional but recommended). `setup.py` auto-detects via `nvidia-smi` and installs the `cu128` torch wheel — covers Turing / Ampere / Ada / Hopper / Blackwell (RTX 20-50xx). On a CPU-only box the CPU torch wheel installs instead and the auto-clamp ladder shrinks the rerank pool to keep per-query latency under target.
 
 ### 2.2 Install
 
@@ -195,6 +196,25 @@ Avg Latency             : 0.47 sec  (Target: <5 seconds)
 
 > **Note on first-run latency.** The reported `latency_seconds` does NOT include the one-time model load (~10 s for bge-m3 + bge-reranker on GPU). Per-query retrieval (the only thing the eval script measures) is well under 1 s.
 
+### 2.6 Defensive engineering for judge reproducibility
+
+The setup and runtime paths are hardened against common reproducibility failure modes — most of these were surfaced by adversarial cold-clone testing on multiple machines:
+
+| Failure mode | Defence |
+| --- | --- |
+| Microsoft Store python.exe stub on PATH (Win 10/11 default) | `setup.bat` rejects `WindowsApps` paths and validates each candidate runs `sys.version_info >= (3, 10)` before using it |
+| HF cache has model directories but partial weights | `offline_guard.py` walks the snapshot dir and only flips `HF_HUB_OFFLINE` when a usable `model.safetensors` or `pytorch_model.bin` is present |
+| HF Xet downloader needs symlinks (Win without Developer Mode) | `setup.py` empirically probes whether the OS allows `os.symlink`; if not, persists `HF_HUB_DISABLE_XET=1` to `.env` so backend / inference subprocesses inherit it |
+| `bge-m3` ships only `pytorch_model.bin` (no SafeTensors) — naive filters drop weights | Per-model ignore lists; post-download verifier confirms a usable weights file exists in each cache dir before claiming success |
+| Cross-encoder reranker OOMs on 4 GB cards | Auto-clamp ladder picks `rerank_k` based on detected VRAM; defaults to a safe small pool on any introspection failure |
+| Backend cold-start exceeds 3 minutes on weak GPUs | `start.py` watchdog set to 300 s with a heartbeat every 30 s |
+| Ctrl+C leaves Next.js node grandchild bound to :3000 | `start.py` cleanup uses `taskkill /F /T /PID` to recursively kill the process tree on Windows |
+| `LLMClient` import order can leave protobuf in a broken state and segfault transformers | `src/api/main.py` imports `Retriever` (torch + transformers) **before** `LLMClient` (google.genai + grpc) |
+| Wide CORS / `0.0.0.0` bind + per-request API keys in `/search` body | Backend bound to `127.0.0.1`; CORS origins restricted to `http://localhost:3000`; `/search` validates `query` length and `top_k` range; `/standards/{is_code}` validates against an IS-code regex before lookup |
+| Cold `health()` fails → spurious "no LLM providers" modal | Frontend retries `/health` 3× with backoff before declaring the backend offline |
+| Pasted API keys carry quotes / zero-width chars | Welcome modal sanitises pasted keys (strip quotes / ZWSP / whitespace) and validates against `/^[A-Za-z0-9_-]{20,}$/` with inline error |
+| `/search` fetch hangs forever on cold backend | 60 s `AbortSignal.timeout` so judges see a clear failure rather than a spinning UI |
+
 ---
 
 ## 3 · Demo UI (FastAPI + Next.js 16)
@@ -274,7 +294,8 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 │   ├── parsed_standards.json   ← 559 structured records (built by pdf_parser)
 │   ├── is_code_whitelist.json  ← anti-hallucination guard
 │   ├── bootstrap_test_set.json ← 18 synthetic queries we used for honest tuning
-│   ├── index/                  ← FAISS + BM25 artifacts
+│   ├── xrefs.json              ← cross-reference graph (538 edges, 135 standards)
+│   ├── index/                  ← FAISS + BM25 artifacts (committed; setup.py skips rebuild)
 │   └── results/                ← saved scoring runs
 │
 ├── src/
@@ -285,8 +306,12 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 │   │   ├── index.py            ← FAISS dense index
 │   │   ├── bm25_index.py       ← BM25 sparse index
 │   │   └── retriever.py        ← Hybrid orchestrator (BM25 + dense + RRF + rerank)
-│   ├── llm/gemini_client.py    ← UI-only: rewrite + rationale
-│   └── api/main.py             ← FastAPI backend for the demo
+│   ├── llm/
+│   │   ├── llm_client.py       ← UI-only orchestrator: tries Gemini, falls back to Groq
+│   │   ├── gemini_client.py    ← Gemini 2.0 Flash wrapper (rewrite + rationale + HyDE)
+│   │   └── groq_client.py      ← Groq Llama 3.3 70B wrapper (fallback path)
+│   ├── api/main.py             ← FastAPI backend for the demo (CORS-locked, 127.0.0.1)
+│   └── offline_guard.py        ← flips HF_HUB_OFFLINE once weights are verified
 │
 ├── frontend/                   ← Next.js 16 + Tailwind v4 + Framer Motion
 │
