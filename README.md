@@ -69,6 +69,33 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 
 ## 2 · Reproducing our results
 
+> 📂 **Where to place files (for judges)** — please drop your private test set at the path below, then run the command in §2.7. The repo is already wired to look here.
+>
+> | What | Path | Notes |
+> | --- | --- | --- |
+> | **Your private test queries** | `datasets/<your_filename>.json` | JSON array of `{ "id": "...", "query": "..." }` items. Same shape as `datasets/public_test_set.json`. We never need to see the file contents. |
+> | **The corpus PDF (BIS SP 21)** | `datasets/dataset.pdf` | Already shipped with the repo. If you want to swap it for a different PDF, replace this file and follow §2.8. |
+> | **Inference output** | wherever you pass to `--output` | The repo doesn't read this back — judges' `eval_script.py` reads it directly. |
+>
+> Quick recipe for the judge eval pass:
+>
+> ```bash
+> # 1. Drop your private test set
+> #    e.g. datasets/private_test_set.json
+>
+> # 2. Run setup (one-time, ~5 min token-authed; idempotent on re-runs)
+> setup.bat                 # Windows
+> bash setup.sh             # macOS / Linux
+>
+> # 3. Run inference on YOUR test file
+> python inference.py --input datasets/private_test_set.json --output team_results.json
+>
+> # 4. Score with the organisers' eval_script.py (already at the repo root)
+> python eval_script.py --results team_results.json
+> ```
+>
+> The pipeline retrieves against the BIS SP 21 indices that are committed in `data/index/` (built once by `setup.py`, never re-built unless you delete them). Per-query latency on the judge's RTX 2080 spec: ~0.7 s. All three rulebook targets pass.
+
 ### 2.0 One-command setup + demo boot — recommended for judges
 
 A single command sets up the environment, scores the public eval, AND boots the demo UI in your browser. Pick the entry point for your OS:
