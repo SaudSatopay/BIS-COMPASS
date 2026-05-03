@@ -215,6 +215,69 @@ The setup and runtime paths are hardened against common reproducibility failure 
 | Pasted API keys carry quotes / zero-width chars | Welcome modal sanitises pasted keys (strip quotes / ZWSP / whitespace) and validates against `/^[A-Za-z0-9_-]{20,}$/` with inline error |
 | `/search` fetch hangs forever on cold backend | 60 s `AbortSignal.timeout` so judges see a clear failure rather than a spinning UI |
 
+### 2.7 Running on the judges' private test set
+
+The rulebook §3.3 specifies the judges run:
+
+```bash
+python inference.py --input hidden_private_dataset.json --output team_results.json
+```
+
+This is identical in shape to §2.4 — only the `--input` filename differs. The private file contains a JSON array of `{ "id": "...", "query": "..." }` objects (same schema as `datasets/public_test_set.json`). The query field is passed through the **same hybrid retrieval pipeline against the SP 21 indices** built by `setup.py` — confirmed by the BIS Hackathon organisers in chat: *"private dataset consists of new queries, same knowledge base."*
+
+After the run, `team_results.json` will contain one record per input item:
+
+```json
+{ "id": "...", "retrieved_standards": [...top-5...], "latency_seconds": 0.46 }
+```
+
+Then the organisers' `eval_script.py` is run against `team_results.json` to compute Hit@3 / MRR@5 / Avg Latency. No additional steps required.
+
+### 2.8 Modifying the input corpus
+
+If you want to point this pipeline at a **different source PDF** (for example, swapping SP 21 for another BIS standards summary), three steps after `setup.py` has already run once:
+
+```bash
+# 1. Replace the source PDF
+cp <your_corpus>.pdf datasets/dataset.pdf
+
+# 2. Re-parse and rebuild the artifacts the rest of the pipeline reads
+PARSER_FORCE=1 python -m src.ingestion.pdf_parser
+python -c "from src.retrieval.index import build_index; from pathlib import Path; build_index(Path('data/parsed_standards.json'), Path('data/index'), force=True)"
+python -c "from src.retrieval.bm25_index import build_index; from pathlib import Path; build_index(Path('data/parsed_standards.json'), Path('data/index'), force=True)"
+
+# 3. Re-run inference on whatever queries you want against the new corpus
+python inference.py --input <your_queries.json> --output <your_results.json>
+```
+
+The whitelist guard (`data/is_code_whitelist.json`) is regenerated automatically by `pdf_parser.py`, so anti-hallucination still works against the new corpus. Total rebuild time on GPU: ~2 min for 500-1000 standards. CPU: ~10 min.
+
+### 2.9 Verification — running the test suite
+
+Thirty-plus pytest cases cover the parser, metadata classifier, cross-reference graph, whitelist guard, and the offline-mode invariant for `inference.py`:
+
+```bash
+python -m pytest tests/
+```
+
+A clean pass means the schema contracts (`is_code`, `retrieved_standards`, `latency_seconds`) and the hallucination guard are intact. Run after any change to `src/` and before submitting.
+
+### 2.10 Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `Could not find a version that satisfies torch==2.11.0` (cu118 / cu121 errors) | Driver < 555, or `setup.py` picked a CUDA wheel that doesn't ship for this torch version | `set TORCH_NO_CUDA=1` (Windows) / `export TORCH_NO_CUDA=1` (Unix) before re-running `setup.py` — installs the CPU wheel instead. Latency goes up but all targets still pass. |
+| Setup fails at `pip install`: `numpy 2.2.6` source build, "no compiler" | Python ≥ 3.14 (no pre-built wheels yet for the ML stack) | Install Python 3.10–3.12 from python.org and create a fresh venv with `py -3.11 -m venv venv`. |
+| `setup.bat` exits with `'python' is not recognized` or opens the Microsoft Store | Only the Windows Store python stub is on PATH | Install Python from python.org with "Add to PATH" checked, then re-run. `setup.bat` rejects the WindowsApps stub automatically once a real install is available. |
+| HF download crawls at ~1 MB/s | Anonymous rate limit | Paste a free read-only HF token when `setup.py` prompts (or set `HF_TOKEN=hf_...` in `.env`). 10–50× speedup. |
+| `OSError: no file named model.safetensors, or pytorch_model.bin` at warm-up | Partial / interrupted HF download | Delete the cache for the affected model and re-run setup: `rmdir /s /q "%USERPROFILE%\.cache\huggingface\hub\models--BAAI--bge-m3"` (Windows) / `rm -rf ~/.cache/huggingface/hub/models--BAAI--bge-m3` (Unix). |
+| `EADDRINUSE: address already in use :::8000` (or 3000) | Previous backend / frontend still running | Kill leftover processes: `taskkill /F /IM python.exe /IM node.exe` (Windows) / `pkill -f "src.api.main"; pkill -f "next start"` (Unix). |
+| Demo backend segfaults at startup | Old build with reverse import order | Pull the latest `main` — `src/api/main.py` now imports `Retriever` before `LLMClient` (commit 4bb52df+). |
+| Welcome modal pops up even though `.env` has keys | Backend still loading models at first frontend tick | Wait ~10 s for the `/health` retry to succeed, then close and reopen the modal — keys load on the next request. |
+| Cold-cache first query hangs > 30 s | First-query CUDA kernel JIT + cuDNN autotune | Normal. Subsequent queries are 0.4–1 s. The eval script's `latency_seconds` excludes one-time model load. |
+
+If something breaks that isn't on this list, the most common cause is a stale venv — delete `venv/` and re-run `setup.bat`.
+
 ---
 
 ## 3 · Demo UI (FastAPI + Next.js 16)
