@@ -87,3 +87,6 @@ data/codex_*.json
 data/results/codex_*.json
 datasets/judge_random_test_set.json
 datasets/private_simulation_*.json
+
+# One-off helper used to generate demo_video_link.pdf — throwaway dev tool.
+scripts/make_link_pdf.py
