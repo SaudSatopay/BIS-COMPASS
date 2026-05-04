@@ -285,13 +285,13 @@ The whitelist guard (`data/is_code_whitelist.json`) is regenerated automatically
 
 ### 2.9 Verification — running the test suite
 
-Thirty-plus pytest cases cover the parser, metadata classifier, cross-reference graph, whitelist guard, and the offline-mode invariant for `inference.py`:
+37 pytest cases cover the parser, metadata classifier, cross-reference graph, whitelist guard, the offline-mode invariant for `inference.py`, and the in-app Eval Sandbox endpoint:
 
 ```bash
 python -m pytest tests/
 ```
 
-A clean pass means the schema contracts (`is_code`, `retrieved_standards`, `latency_seconds`) and the hallucination guard are intact. Run after any change to `src/` and before submitting.
+A clean pass means the schema contracts (`is_code`, `retrieved_standards`, `latency_seconds`) and the hallucination guard are intact, and that `/judge_search` returns byte-for-byte identical results to `inference.py`. Run after any change to `src/` and before submitting.
 
 ### 2.10 Troubleshooting
 
@@ -363,6 +363,25 @@ The search panel sends each query to `POST /search` and renders the hybrid top-5
 
 Both modes honour the **IS-code whitelist filter** — any rationale that mentions a code outside the SP 21 corpus is silently dropped before reaching the user. The toggle exists so judges can verify the retrieval system stands on its own without LLM enrichment.
 
+### 3.2 In-app Eval Sandbox (for judges)
+
+Below the search panel on the main page is a collapsible **Eval Sandbox** card — a one-click way for judges to run a JSON test set through the offline pipeline and see the rulebook metrics computed live in the browser.
+
+**How to use it:**
+
+1. Expand the *Eval Sandbox* card (the *"For judges"* badge marks it).
+2. Drag-drop your `private_dataset.json` into the dropzone (or click to browse). Schema is the same as `datasets/public_test_set.json` — a JSON array of `{ "id": "...", "query": "...", "expected_standards": [...] }` objects (`expected_standards` is optional; only Avg Latency is computed when it's missing).
+3. Click **Run evaluation**. A progress bar updates per query.
+4. When the run finishes, the panel shows three target-coloured cards:
+   * **Hit Rate @3** — green if > 80 %
+   * **MRR @5** — green if > 0.7
+   * **Avg Latency** — green if < 5 s
+5. Click **Download results.json** to save the run output. The file is drop-in compatible with the organisers' eval script: `python eval_script.py --results results.json` produces the exact same numbers the panel displayed.
+
+**Why a separate endpoint?** The sandbox calls `POST /judge_search`, which mirrors `inference.py` exactly — same `Retriever`, no LLM rewriting, no rationales, server-side `time.perf_counter()` for latency. Verified by a pytest case (`tests/test_judge_search.py::test_parity_with_inference_py`) that asserts byte-for-byte identical `retrieved_standards` between the endpoint and `Retriever.search()`. So the numbers a judge sees in the UI match what the auto-script would produce on the same input.
+
+**Anti-hallucination guarantee carries over.** The retriever's IS-code whitelist runs in `/judge_search` exactly the same way it does in `inference.py` — the panel cannot return a fabricated standard.
+
 ---
 
 ## 4 · Repo layout
@@ -406,9 +425,13 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 │   │   ├── gemini_client.py    ← Gemini 2.0 Flash wrapper (rewrite + rationale + HyDE)
 │   │   └── groq_client.py      ← Groq Llama 3.3 70B wrapper (fallback path)
 │   ├── api/main.py             ← FastAPI backend for the demo (CORS-locked, 127.0.0.1)
+│   │                             Endpoints: /search (with LLM), /judge_search (parity with inference.py), /standards, /health
 │   └── offline_guard.py        ← flips HF_HUB_OFFLINE once weights are verified
 │
 ├── frontend/                   ← Next.js 16 + Tailwind v4 + Framer Motion
+│   └── src/
+│       ├── components/EvalPanel.tsx   ← in-app Eval Sandbox (drop-in JSON, live Hit@3 / MRR@5 / latency)
+│       └── lib/metrics.ts             ← ports eval_script.py math to the browser
 │
 ├── docs/
 │   ├── architecture.png        ← rendered Mermaid diagram (in this README)
@@ -418,7 +441,7 @@ Both modes honour the **IS-code whitelist filter** — any rationale that mentio
 │   ├── failure_analysis.md     ← per-query miss analysis
 │   └── demo_script.md          ← 7-min demo video storyboard
 │
-├── tests/                      ← pytest suite (parser, metadata, xref, whitelist, offline)
+├── tests/                      ← pytest suite (parser, metadata, xref, whitelist, offline, judge_search parity)
 │
 └── scripts/
     ├── ablation.py             ← reproduces docs/ablation.md
