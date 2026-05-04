@@ -120,11 +120,17 @@ python start.py        # boot backend on :8000 + frontend on :3000
 
 | Setup | Total time | Notes |
 | --- | --- | --- |
-| With HF token (`setup.py` prompts for a free one in 30 s) | **~5 min** | Recommended |
-| Anonymous HF download (rate-limited)                       | **~9–15 min** | Measured: **535 s on a laptop link** |
-| Subsequent runs (everything cached, fully offline)         | **~10 s**  | Idempotent — skips parse + index |
+| **R2 mirror** (default) | **~3–5 min** | Cloudflare CDN, no rate limit |
+| HF Hub with auth token (`setup.py` prompts for a free one in 30 s) | **~5–7 min** | Used as fallback if R2 mirror is unreachable |
+| HF Hub anonymous (rate-limited fallback) | **~9–15 min** | Measured: 535 s on a laptop link |
+| Subsequent runs (everything cached, fully offline) | **~10 s** | Idempotent — skips parse + index |
 
-The dominant cost is the one-time HuggingFace download. We **pre-filter** the download to drop ONNX, OpenVINO, and redundant weight-format variants the libraries never use — keeping `model.safetensors` for `bge-reranker-v2-m3` and `pytorch_model.bin` for `bge-m3` (the only weight file that repo ships). This cuts wire size from ~12 GB (full repos) to ~5 GB without changing model behaviour. The two models download in **parallel** (`ThreadPoolExecutor`) with **`max_workers=16`** per-file concurrency. A post-download verifier checks both repos have a usable weight file before claiming step 2 done.
+The dominant cost is the one-time model-weight download. To make this reliably fast on a fresh-clone judge box we ship **two delivery paths**:
+
+1. **Cloudflare R2 mirror (default).** Pre-baked HF cache snapshots for `bge-m3` and `bge-reranker-v2-m3` are hosted on the project's own R2 bucket. setup.py streams the tarballs (~2.2 GB each), verifies sha256, and extracts them straight into the local HF Hub cache. No HF rate limit, GitHub-CDN-class throughput, no token required. Set `BIS_COMPASS_SKIP_MIRROR=1` to bypass.
+2. **HuggingFace Hub fallback.** If the R2 mirror is unreachable for any reason (network, 404, sha256 mismatch, extract failure) setup.py silently falls through to the canonical `huggingface_hub.snapshot_download` path with the existing 3-attempt retry loop and the per-model `ignore_patterns` filter (drops ONNX, OpenVINO, redundant weight formats — wire size 5 GB instead of 12 GB).
+
+Either way a post-download verifier confirms a usable weight file (`model.safetensors` or `pytorch_model.bin`) is present in the cache before claiming step 2 done — so a corrupt or partial download fails loud here instead of crashing transformers later with an opaque stack trace.
 
 What the script does, with progress and timing for every step:
 1. Pre-flight checks (Python version, free disk)
@@ -245,6 +251,7 @@ The setup and runtime paths are hardened against common reproducibility failure 
 | Cold `health()` fails → spurious "no LLM providers" modal | Frontend retries `/health` 3× with backoff before declaring the backend offline |
 | Pasted API keys carry quotes / zero-width chars | Welcome modal sanitises pasted keys (strip quotes / ZWSP / whitespace) and validates against `/^[A-Za-z0-9_-]{20,}$/` with inline error |
 | `/search` fetch hangs forever on cold backend | 60 s `AbortSignal.timeout` so judges see a clear failure rather than a spinning UI |
+| HF anonymous rate limit + intermittent 5xx during cold-clone setup | Cloudflare R2 mirror tried first (sha256-verified); silently falls back to canonical HF Hub on any failure (404, hash mismatch, network timeout). Set `BIS_COMPASS_SKIP_MIRROR=1` to bypass. |
 
 ### 2.7 Running on the judges' private test set
 
@@ -496,7 +503,8 @@ Every recommended IS code is checked against `is_code_whitelist.json` (extracted
 
 * **Google Gemini 2.0 Flash** (free tier) — primary LLM for the demo UI's query rewriting and rationale generation. The judge entry point `inference.py` does NOT call any external API; it is fully local.
 * **Groq Llama 3.3 70B** (free tier) — automatic fallback when Gemini returns a quota / rate-limit error. The `LLMClient` (in `src/llm/llm_client.py`) transparently retries on Groq, so the demo keeps working when Gemini's daily free-tier cap is hit. Set `GROQ_API_KEY` in `.env` to enable; sign up at <https://console.groq.com/keys>.
-* **Hugging Face Hub** — for first-time download of `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` weights (cached locally afterwards).
+* **Hugging Face Hub** — fallback source for first-time download of `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` weights (cached locally afterwards). Used when the R2 mirror below is unreachable.
+* **Cloudflare R2** — the project hosts pre-baked HF cache snapshots of the two models (`bge-m3.tar`, `bge-reranker-v2-m3.tar`) on its own R2 bucket at `https://pub-f3557ebd1a2542c4877b67919ae14736.r2.dev`. setup.py tries this mirror first to avoid HF anonymous rate limits and gives judges a faster cold-clone install. Each tarball's sha256 is verified before extraction; any failure (404, hash mismatch, network) silently falls back to HF Hub. Bypass with `BIS_COMPASS_SKIP_MIRROR=1`. The mirrored content is unmodified and identical to BAAI's HF snapshots — the bucket is purely a CDN convenience for judges.
 * **Source data** — `datasets/dataset.pdf` is the SP 21 (2005) — *Summaries of Indian Standards for Building Materials* — published by the Bureau of Indian Standards under the Right to Information Act, supplied by the hackathon organisers. Unmodified.
 
 No other APIs, datasets, or third-party services are used.

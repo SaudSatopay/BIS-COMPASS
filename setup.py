@@ -450,6 +450,138 @@ def _has_weights_in_cache(model_id: str) -> bool:
     return False
 
 
+# ----------------------------------------------------------------------
+# Cloudflare R2 model mirror
+# ----------------------------------------------------------------------
+# Pre-baked HF cache snapshots hosted on Cloudflare R2 (the project's own
+# bucket, not a third-party mirror). Faster than anonymous HuggingFace
+# Hub on most geographies (R2's global CDN + no per-IP rate limiting).
+# Each .tar contains the dereferenced HF cache for one model
+# (refs/ + snapshots/<commit>/<files...>); setup.py streams the download,
+# verifies sha256 against the expected full-tar hash, and extracts into
+# the local HF Hub cache directory. ANY failure (network, 404, hash
+# mismatch, extract error) silently falls back to the canonical HF Hub
+# path so the eval pipeline is never compromised.
+#
+# Set BIS_COMPASS_SKIP_MIRROR=1 to bypass the mirror entirely.
+R2_MIRROR_BASE_URL = "https://pub-f3557ebd1a2542c4877b67919ae14736.r2.dev"
+R2_MIRROR: dict[str, dict] = {
+    "BAAI/bge-m3": {
+        "filename": "bge-m3.tar",
+        "tar_sha256": (
+            "58c1bde2458a5a8895092a8ebd48e4eaadf31548cb94384bb953146d7b24ef66"
+        ),
+        "approx_size_gb": 2.2,
+    },
+    "BAAI/bge-reranker-v2-m3": {
+        "filename": "bge-reranker-v2-m3.tar",
+        "tar_sha256": (
+            "f7926e1ad17a0d9fffc35f188405d725b9135bdba87cb8f83a38e69177036c4a"
+        ),
+        "approx_size_gb": 2.2,
+    },
+}
+
+
+def _hub_cache_dir() -> Path:
+    """Resolve the HuggingFace Hub cache directory the same way the HF Hub
+    library does, so our extract lands where snapshot_download would write."""
+    if hub_cache := os.getenv("HF_HUB_CACHE"):
+        return Path(hub_cache)
+    if hf_home := os.getenv("HF_HOME"):
+        return Path(hf_home) / "hub"
+    return Path.home() / ".cache" / "huggingface" / "hub"
+
+
+def _fetch_from_r2_mirror(model_id: str) -> tuple[bool, str]:
+    """Try to populate the HF cache for `model_id` from the project's R2
+    mirror. Streams the download, computes sha256 on the fly, verifies
+    against the expected hash before extracting, then extracts into the
+    HF Hub cache. Returns (success, error_msg). Caller falls back to
+    canonical HF Hub on any failure."""
+    info = R2_MIRROR.get(model_id)
+    if not info:
+        return False, "no mirror configured for this model"
+
+    import hashlib  # noqa: PLC0415
+    import tarfile  # noqa: PLC0415
+    import tempfile  # noqa: PLC0415
+    import urllib.error  # noqa: PLC0415
+    import urllib.request  # noqa: PLC0415
+
+    filename: str = info["filename"]
+    expected_sha: str = info["tar_sha256"]
+    approx_gb: float = info.get("approx_size_gb", 0)
+    hub_dir = _hub_cache_dir()
+    hub_dir.mkdir(parents=True, exist_ok=True)
+    url = f"{R2_MIRROR_BASE_URL}/{filename}"
+
+    print(color(
+        "dim",
+        f"      mirror: streaming {filename} (~{approx_gb:.1f} GB) from R2...",
+    ))
+
+    # Cloudflare's free public R2 (pub-*.r2.dev) blocks the default
+    # `Python-urllib/X.Y` User-Agent with HTTP 403. Set an explicit project
+    # UA so anti-abuse rules let us through.
+    user_agent = (
+        "Mozilla/5.0 (compatible; BIS-Compass-Setup/1.0; "
+        "+https://github.com/SaudSatopay/BIS-COMPASS)"
+    )
+
+    with tempfile.TemporaryDirectory(prefix="bis_r2_mirror_") as tmp:
+        tmp_path = Path(tmp)
+        h = hashlib.sha256()
+        full_tar_path = tmp_path / filename
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": user_agent})
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                if resp.status != 200:
+                    return False, f"HTTP {resp.status} on {filename}"
+                with full_tar_path.open("wb") as out_f:
+                    while True:
+                        chunk = resp.read(8 * 1024 * 1024)  # 8 MB
+                        if not chunk:
+                            break
+                        out_f.write(chunk)
+                        h.update(chunk)
+        except (
+            urllib.error.URLError,
+            ConnectionError,
+            TimeoutError,
+            OSError,
+        ) as e:
+            return False, f"download {filename}: {type(e).__name__}: {e}"
+        except Exception as e:  # noqa: BLE001
+            return False, f"download {filename}: {type(e).__name__}: {e}"
+
+        # Verify sha256 BEFORE extracting — protects against any partial /
+        # corrupted download slipping past the HTTP layer.
+        actual_sha = h.hexdigest()
+        if actual_sha != expected_sha:
+            return False, (
+                f"sha256 mismatch on {filename} "
+                f"(expected {expected_sha[:12]}…, got {actual_sha[:12]}…)"
+            )
+
+        try:
+            with tarfile.open(full_tar_path, "r") as tf:
+                # filter='data' (Python 3.12+) is the safe extract option;
+                # we fall through to the legacy unsafe-by-default extractall
+                # on older Pythons. Our tar is internally generated so the
+                # security risk is low either way.
+                try:
+                    tf.extractall(hub_dir, filter="data")  # type: ignore[arg-type]
+                except TypeError:
+                    tf.extractall(hub_dir)
+        except Exception as e:  # noqa: BLE001
+            return False, f"extract: {type(e).__name__}: {e}"
+
+    if not _has_weights_in_cache(model_id):
+        return False, "post-extract verifier could not find weights in cache"
+    return True, ""
+
+
 def step_prefetch_models(n: int):
     """Pre-fetch only the model files we actually need from HuggingFace,
     in parallel, with high per-file concurrency.
@@ -484,13 +616,32 @@ def step_prefetch_models(n: int):
     token = os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
     models = ("BAAI/bge-m3", "BAAI/bge-reranker-v2-m3")
 
-    def _fetch(model_id: str) -> tuple[str, bool, str]:
-        """Download one model with up to 3 attempts and linear backoff.
+    skip_mirror = bool(os.getenv("BIS_COMPASS_SKIP_MIRROR"))
 
-        Auth errors (401/403) bail immediately — retrying won't fix them.
-        Connection / timeout / partial-download errors get retried. After
-        the last attempt the post-download verifier still runs and reports
-        if a usable weight file isn't in the cache."""
+    def _fetch(model_id: str) -> tuple[str, bool, str]:
+        """Download one model. Tries the Cloudflare R2 mirror first (faster
+        than anonymous HF Hub on most geographies, no per-IP rate limit),
+        falls back to canonical HuggingFace Hub on any failure (404, hash
+        mismatch, timeout, extract error). The fallback path keeps the
+        original retry/backoff behaviour from fix #4.
+
+        Auth errors (401/403) on HF bail immediately — retrying won't fix them."""
+        # Mirror-first attempt: cheap to skip if already cached, fast
+        # otherwise. Mirror failures NEVER raise — they always fall through.
+        if not skip_mirror and model_id in R2_MIRROR:
+            if _has_weights_in_cache(model_id):
+                # Already cached locally (e.g. previous run, dev rig) — skip
+                # mirror download entirely.
+                return (model_id, True, "")
+            ok, err = _fetch_from_r2_mirror(model_id)
+            if ok:
+                return (model_id, True, "")
+            print(color(
+                "dim",
+                f"      mirror unavailable for {model_id} ({err}); "
+                f"falling back to HuggingFace Hub...",
+            ))
+
         last_err = ""
         for attempt in range(1, 4):  # 1, 2, 3
             try:
