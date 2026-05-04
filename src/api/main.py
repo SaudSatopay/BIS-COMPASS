@@ -377,6 +377,46 @@ def search(req: SearchRequest) -> SearchResponse:
     )
 
 
+# ----------------------------------------------------------------------
+# /judge_search — inference.py-parity endpoint for the Eval Sandbox UI.
+#
+# Mirrors `inference.py` exactly: NO LLM, NO query rewriting, NO rationales.
+# Just bare retrieval + server-measured wall-clock latency. The frontend's
+# Eval Sandbox panel loops over a judge-supplied JSON file and calls this
+# per query; the resulting JSON is byte-for-byte the shape `eval_script.py`
+# expects, so judges can verify our reported metrics offline.
+# ----------------------------------------------------------------------
+class JudgeSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=2000)
+
+
+class JudgeSearchResponse(BaseModel):
+    retrieved_standards: list[str]
+    latency_seconds: float
+
+
+@app.post("/judge_search", response_model=JudgeSearchResponse)
+def judge_search(req: JudgeSearchRequest) -> JudgeSearchResponse:
+    """Pure-retrieval endpoint that mirrors `inference.py`'s behaviour.
+
+    Same Retriever, no LLM enrichment, server-side `time.perf_counter()`
+    around the retriever.search() call so latency matches what the judge
+    auto-script would report. Errors return an empty list + zero latency,
+    matching the per-item failure behaviour in `inference.py:104`.
+    """
+    retriever: Retriever = STATE["retriever"]
+    t = time.perf_counter()
+    try:
+        hits = retriever.search(req.query)
+    except Exception:  # noqa: BLE001 — never let one bad query break a batch run
+        return JudgeSearchResponse(retrieved_standards=[], latency_seconds=0.0)
+    latency = time.perf_counter() - t
+    return JudgeSearchResponse(
+        retrieved_standards=[h.is_code for h in hits[:5]],
+        latency_seconds=round(latency, 3),
+    )
+
+
 def main():
     import uvicorn
     port = int(os.getenv("PORT", "8000"))

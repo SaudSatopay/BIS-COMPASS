@@ -1,4 +1,5 @@
 import { CursorGlow } from "@/components/CursorGlow";
+import { EvalPanel } from "@/components/EvalPanel";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { SearchPanel } from "@/components/SearchPanel";
@@ -15,6 +16,7 @@ export default function Page() {
       <div id="search" className="relative z-10 pt-24 sm:pt-28 pb-16 scroll-mt-16">
         <SearchPanel />
         <StatsBar />
+        <EvalPanel />
       </div>
       <Footer />
       <WelcomeModal />
