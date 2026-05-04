@@ -17,7 +17,7 @@
 Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 ¹ Measured on RTX 5060 Ti (Blackwell, 16 GB) with hot HF cache: 0.45 s. Independent verification on a different machine reported 0.85 s. Both well under the 5 s target.
 
-> ⏱ **First run downloads ~5 GB of model weights** (`BAAI/bge-m3` + `BAAI/bge-reranker-v2-m3`) from HuggingFace — allow **3–5 minutes** on first invocation depending on your connection. All subsequent runs are fully offline (the [`offline guard`](src/offline_guard.py) auto-flips `HF_HUB_OFFLINE=1` once the cache is populated). Confirmed by the BIS Hackathon organisers as the expected pattern.
+> ⏱ **First run downloads ~5 GB of model weights** (`BAAI/bge-m3` + `BAAI/bge-reranker-v2-m3`) — by default from the project's Cloudflare R2 mirror, with HuggingFace Hub as a transparent fallback. Allow **5–10 minutes** for the model download depending on your connection. All subsequent runs are fully offline (the [`offline guard`](src/offline_guard.py) auto-flips `HF_HUB_OFFLINE=1` once the cache is populated). Confirmed by the BIS Hackathon organisers as the expected pattern.
 
 > 🖥 **Cross-hardware validated.** All three rulebook targets pass on both ends of the consumer-GPU range:
 > | Hardware | rerank_k | Hit@3 | MRR@5 | Avg Latency |
@@ -121,9 +121,9 @@ python start.py        # boot backend on :8000 + frontend on :3000
 
 | Setup | Total time | Notes |
 | --- | --- | --- |
-| **R2 mirror** (default) | **~3–5 min** | Cloudflare CDN, no rate limit |
-| HF Hub with auth token (`setup.py` prompts for a free one in 30 s) | **~5–7 min** | Used as fallback if R2 mirror is unreachable |
-| HF Hub anonymous (rate-limited fallback) | **~9–15 min** | Measured: 535 s on a laptop link |
+| **R2 mirror** (default) | **~10–15 min** | Cloudflare CDN, no rate limit. Measured: 12:12 on a laptop test (GTX 1650, 91 Mbps, populated pip cache) |
+| HF Hub with auth token (`setup.py` prompts for a free one in 30 s) | **~12–18 min** | Used as fallback if R2 mirror is unreachable |
+| HF Hub anonymous (rate-limited fallback) | **~20–35 min** | Slow path. Measured: 38:02 on the same laptop |
 | Subsequent runs (everything cached, fully offline) | **~10 s** | Idempotent — skips parse + index |
 
 The dominant cost is the one-time model-weight download. To make this reliably fast on a fresh-clone judge box we ship **two delivery paths**:
@@ -131,15 +131,15 @@ The dominant cost is the one-time model-weight download. To make this reliably f
 1. **Cloudflare R2 mirror (default).** Pre-baked HF cache snapshots for `bge-m3` and `bge-reranker-v2-m3` are hosted on the project's own R2 bucket. setup.py streams the tarballs (~2.2 GB each), verifies sha256, and extracts them straight into the local HF Hub cache. No HF rate limit, GitHub-CDN-class throughput, no token required. Set `BIS_COMPASS_SKIP_MIRROR=1` to bypass.
 2. **HuggingFace Hub fallback.** If the R2 mirror is unreachable for any reason (network, 404, sha256 mismatch, extract failure) setup.py silently falls through to the canonical `huggingface_hub.snapshot_download` path with the existing 3-attempt retry loop and the per-model `ignore_patterns` filter (drops ONNX, OpenVINO, redundant weight formats — wire size 5 GB instead of 12 GB).
 
-Either way a post-download verifier confirms a usable weight file (`model.safetensors` or `pytorch_model.bin`) is present in the cache before claiming step 2 done — so a corrupt or partial download fails loud here instead of crashing transformers later with an opaque stack trace.
+Either way a post-download verifier confirms the cache holds **all the files transformers needs to load each model** — at least one weight format (`model.safetensors` or `pytorch_model.bin`) plus the small auxiliary files (`tokenizer.json`, `config.json`, `sentencepiece.bpe.model`). A corrupt or partial download fails loud here instead of crashing transformers later with an opaque tokenizer error.
 
 What the script does, with progress and timing for every step:
-1. Pre-flight checks (Python version, free disk)
-2. `pip install -r requirements.txt`
-3. Parse SP 21 PDF → `parsed_standards.json` + `is_code_whitelist.json`
-4. Build FAISS dense index (downloads `bge-m3` on first run)
-5. Build BM25 sparse index
-6. Warm-up `inference.py` on the public test set (downloads `bge-reranker-v2-m3` on first run)
+1. Pre-flight checks (Python version, Node.js + npm, NVIDIA driver, symlink support, ~14 GB disk)
+2. `pip install -r requirements.txt` (auto-picks cu128 / CPU torch wheel from `nvidia-smi` + driver version)
+3. Parse SP 21 PDF → `parsed_standards.json` + `is_code_whitelist.json` (committed; skipped on re-runs)
+4. Build FAISS dense index (committed; downloads `bge-m3` on first run via R2 mirror or HF Hub fallback)
+5. Build BM25 sparse index (committed; skipped on re-runs)
+6. Warm-up `inference.py` on the public test set (downloads `bge-reranker-v2-m3` on first run via R2 mirror or HF Hub fallback)
 7. Score the warm-up with `eval_script.py`
 
 If you'd rather run the steps individually, §2.2–§2.5 below walks through them.
@@ -243,7 +243,7 @@ The setup and runtime paths are hardened against common reproducibility failure 
 | Microsoft Store python.exe stub on PATH (Win 10/11 default) | `setup.bat` rejects `WindowsApps` paths and validates each candidate runs `sys.version_info >= (3, 10)` before using it |
 | HF cache has model directories but partial weights | `offline_guard.py` walks the snapshot dir and only flips `HF_HUB_OFFLINE` when a usable `model.safetensors` or `pytorch_model.bin` is present |
 | HF Xet downloader needs symlinks (Win without Developer Mode) | `setup.py` empirically probes whether the OS allows `os.symlink`; if not, persists `HF_HUB_DISABLE_XET=1` to `.env` so backend / inference subprocesses inherit it |
-| `bge-m3` ships only `pytorch_model.bin` (no SafeTensors) — naive filters drop weights | Per-model ignore lists; post-download verifier confirms a usable weights file exists in each cache dir before claiming success |
+| `bge-m3` ships only `pytorch_model.bin` (no SafeTensors) — naive filters drop weights | Per-model ignore lists; post-download verifier confirms the cache has BOTH a usable weight file AND the small auxiliary files (`tokenizer.json`, `config.json`, `sentencepiece.bpe.model`) before claiming success — catches truncated tarballs that would otherwise pass a weights-only check and crash later in transformers |
 | Cross-encoder reranker OOMs on 4 GB cards | Auto-clamp ladder picks `rerank_k` based on detected VRAM; defaults to a safe small pool on any introspection failure |
 | Backend cold-start exceeds 3 minutes on weak GPUs | `start.py` watchdog set to 300 s with a heartbeat every 30 s |
 | Ctrl+C leaves Next.js node grandchild bound to :3000 | `start.py` cleanup uses `taskkill /F /T /PID` to recursively kill the process tree on Windows |
@@ -406,6 +406,10 @@ Below the search panel on the main page is a collapsible **Eval Sandbox** card �
 ├── SYSTEM_REQUIREMENTS.txt     ← OS / hardware / driver / disk / network prerequisites
 ├── README.md  (this file)
 ├── presentation.pdf            ← 8-slide deck per rulebook §3.1
+├── demo_video_link.pdf         ← rulebook §3.1 demo-video link, also as .zip
+├── demo_video_link.zip         ←   for portals that demand specific formats
+├── team_results.json           ← canonical public-test scoring run for judges
+│                                  (Hit@3 100% / MRR@5 0.9333 / 0.47 s)
 │
 ├── datasets/                   ← unmodified inputs from organisers
 │   ├── dataset.pdf             ← SP 21 (929 pages)
@@ -454,7 +458,9 @@ Below the search panel on the main page is a collapsible **Eval Sandbox** card �
 └── scripts/
     ├── ablation.py             ← reproduces docs/ablation.md
     ├── bootstrap_eval_set.py   ← synthesises eval queries with Gemini
+    ├── build_deck.js           ← node script → presentation.pptx (.pdf is committed)
     ├── calibrate_confidence.py ← derives the 0.55 / 0.40 confidence bands
+    ├── capture_demo_shots.js   ← Puppeteer script for docs/demo_*.png
     ├── failure_analysis.py     ← reproduces docs/failure_analysis.md
     └── setup_offline.py        ← pre-downloads HF model weights
 ```
@@ -505,7 +511,7 @@ Every recommended IS code is checked against `is_code_whitelist.json` (extracted
 * **Google Gemini 2.0 Flash** (free tier) — primary LLM for the demo UI's query rewriting and rationale generation. The judge entry point `inference.py` does NOT call any external API; it is fully local.
 * **Groq Llama 3.3 70B** (free tier) — automatic fallback when Gemini returns a quota / rate-limit error. The `LLMClient` (in `src/llm/llm_client.py`) transparently retries on Groq, so the demo keeps working when Gemini's daily free-tier cap is hit. Set `GROQ_API_KEY` in `.env` to enable; sign up at <https://console.groq.com/keys>.
 * **Hugging Face Hub** — fallback source for first-time download of `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` weights (cached locally afterwards). Used when the R2 mirror below is unreachable.
-* **Cloudflare R2** — the project hosts pre-baked HF cache snapshots of the two models (`bge-m3.tar`, `bge-reranker-v2-m3.tar`) on its own R2 bucket at `https://pub-f3557ebd1a2542c4877b67919ae14736.r2.dev`. setup.py tries this mirror first to avoid HF anonymous rate limits and gives judges a faster cold-clone install. Each tarball's sha256 is verified before extraction; any failure (404, hash mismatch, network) silently falls back to HF Hub. Bypass with `BIS_COMPASS_SKIP_MIRROR=1`. The mirrored content is unmodified and identical to BAAI's HF snapshots — the bucket is purely a CDN convenience for judges.
+* **Cloudflare R2** — the project hosts pre-baked HF cache snapshots of the two models (`bge-m3.tar`, `bge-reranker.tar`) on its own R2 bucket at `https://pub-f3557ebd1a2542c4877b67919ae14736.r2.dev`. setup.py tries this mirror first to avoid HF anonymous rate limits and gives judges a faster cold-clone install. Each tarball's sha256 is verified before extraction; any failure (404, hash mismatch, network) silently falls back to HF Hub. Bypass with `BIS_COMPASS_SKIP_MIRROR=1`. The mirrored content is unmodified and identical to BAAI's HF snapshots — the bucket is purely a CDN convenience for judges.
 * **Source data** — `datasets/dataset.pdf` is the SP 21 (2005) — *Summaries of Indian Standards for Building Materials* — published by the Bureau of Indian Standards under the Right to Information Act, supplied by the hackathon organisers. Unmodified.
 
 No other APIs, datasets, or third-party services are used.
