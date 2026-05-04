@@ -80,3 +80,10 @@ data/results/public_v6c.json
 data/results/public_final.json
 data/results/honest_public.json
 data/results/no_colbert_public.json
+
+# Internal stress-test datasets (not part of the public submission).
+# Kept locally for our own pre-submit validation; not relevant to judges.
+data/codex_*.json
+data/results/codex_*.json
+datasets/judge_random_test_set.json
+datasets/private_simulation_*.json
