@@ -53,7 +53,15 @@ class TestOfflineInference:
             [sys.executable, "inference.py",
              "--input", "datasets/public_test_set.json",
              "--output", str(out)],
-            capture_output=True, text=True, cwd=str(ROOT), env=env, timeout=300,
+            # encoding="utf-8" + errors="replace" force the parent process to
+            # decode the child's stdout/stderr as UTF-8 instead of the parent's
+            # locale (which is cp1252 on stock Windows cmd). inference.py's
+            # offline_guard banner contains the ✓ glyph; without these args,
+            # subprocess.run raises UnicodeDecodeError on Windows the moment
+            # it tries to decode the banner.
+            capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(ROOT), env=env, timeout=300,
         )
         assert result.returncode == 0, f"inference.py exited {result.returncode}: {result.stderr[-500:]}"
         assert "enforcing offline mode" in result.stderr.lower(), \
@@ -68,7 +76,12 @@ class TestOfflineInference:
             [sys.executable, "inference.py",
              "--input", "datasets/public_test_set.json",
              "--output", str(out)],
-            capture_output=True, text=True, cwd=str(ROOT), env=env, timeout=300,
+            # See docstring of test_inference_auto_enables_offline_mode above
+            # — UTF-8 decode is required on stock Windows cmd to avoid a
+            # UnicodeDecodeError on the banner glyphs.
+            capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            cwd=str(ROOT), env=env, timeout=300,
         )
         assert result.returncode == 0, f"inference.py exited {result.returncode}"
         data = json.loads(out.read_text(encoding="utf-8"))
