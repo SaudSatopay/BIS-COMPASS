@@ -474,7 +474,12 @@ R2_MIRROR: dict[str, dict] = {
         "approx_size_gb": 2.2,
     },
     "BAAI/bge-reranker-v2-m3": {
-        "filename": "bge-reranker-v2-m3.tar",
+        # Server-side renamed from bge-reranker-v2-m3.tar to dodge a
+        # persistent Cloudflare slow-route on the original key path.
+        # Same bytes (sha256 unchanged), same bucket — only the URL
+        # differs. Empirically restored throughput from ~0.6 MB/s to
+        # ~7.5 MB/s on the dev rig + judge laptop test path.
+        "filename": "bge-reranker.tar",
         "tar_sha256": (
             "f7926e1ad17a0d9fffc35f188405d725b9135bdba87cb8f83a38e69177036c4a"
         ),
