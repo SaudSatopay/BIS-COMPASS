@@ -44,7 +44,11 @@ if not defined PY (
 echo Using Python: %PY%
 echo.
 
-"%PY%" setup.py
+REM -u = unbuffered stdio + PYTHONUNBUFFERED=1 for child processes (pip, etc).
+REM Without it, judges who tee setup.bat output can sit silent through the
+REM 2-minute pip install, looking dead. -u makes both setup.py's own prints
+REM and child-process output stream live.
+"%PY%" -u setup.py
 if errorlevel 1 (
     echo.
     echo Setup failed. See output above. Demo boot skipped.
@@ -54,7 +58,7 @@ if errorlevel 1 (
 echo.
 echo Setup complete. Booting demo...
 echo.
-"%PY%" start.py
+"%PY%" -u start.py
 exit /b %errorlevel%
 
 REM --- subroutine -------------------------------------------------------------

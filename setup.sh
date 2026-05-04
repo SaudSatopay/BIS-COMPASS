@@ -27,9 +27,13 @@ fi
 
 cd "$(dirname "$0")"
 
-"$PY" setup.py
+# -u = unbuffered stdio + PYTHONUNBUFFERED=1 for child processes (pip, etc).
+# Without it, judges who tee setup.sh output can sit silent through the
+# 2-minute pip install, looking dead. -u makes both setup.py's own prints
+# and child-process output stream live.
+"$PY" -u setup.py
 
 echo
 echo "Setup complete. Booting demo..."
 echo
-exec "$PY" start.py
+exec "$PY" -u start.py
