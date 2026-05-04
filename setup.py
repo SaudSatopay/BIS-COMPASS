@@ -17,7 +17,7 @@ Or via the platform-native shortcut:
 
 What this does
 --------------
-1. Verify Python version (3.10–3.13 supported; warns on 3.14+)
+1. Verify Python version (3.10–3.12 validated; 3.13 likely works; warns on 3.14+)
 2. Install dependencies from requirements.txt
 3. Parse SP 21 PDF -> 559 standards + IS-code whitelist  (skipped if cached)
 4. Build FAISS dense index (downloads bge-m3 ~2.3 GB)     (skipped if cached)
@@ -359,34 +359,40 @@ def preflight() -> None:
         print(color("yellow",
             "  and re-run start.py. Setup will continue normally."))
 
-    # Disk-space check. Realistic fresh-clone footprint:
+    # Disk-space check. Realistic fresh-clone PEAK transient footprint:
     #   ~3 GB cu128 torch wheel (or ~750 MB CPU)
-    #   ~5 GB HF model cache (bge-m3 + bge-reranker-v2-m3, filtered)
+    #   ~5 GB final HF model cache (bge-m3 + bge-reranker, filtered)
+    #   + ~4-5 GB during R2-mirror extract (both 2.2 GB tars in /tmp +
+    #     extracted contents, before TemporaryDirectory cleanup)
     #   ~2 GB npm cache + .next production build
     #   ~1 GB pip wheel cache + venv
-    # ≈ 11-12 GB on a fresh-clone GPU box. Hard fail at <6 GB because
-    # below that the warm-up step is guaranteed to fail mid-download
-    # and leave a corrupt cache the user has to manually rm -rf.
+    # PEAK ≈ 13-14 GB during R2 mirror extract on a fresh-clone GPU box.
+    # Hard fail at <8 GB because below that the R2 mirror's temp tarball
+    # + extract will fill the disk mid-write and leave a corrupt cache
+    # that even the strengthened _has_weights_in_cache verifier may pass.
     try:
         free_gb = shutil.disk_usage(ROOT).free / (1024 ** 3)
-        if free_gb < 6:
+        if free_gb < 8:
             print()
             print(color("red",
                 f"  ERROR: only {free_gb:.1f} GB free in {ROOT.drive or '/'} — "
-                f"setup needs at least 6 GB"))
+                f"setup needs at least 8 GB"))
             print(color("red",
-                f"         to complete (12 GB recommended for full install + "
-                f"frontend build)."))
+                f"         to complete safely (14 GB recommended; the R2 mirror "
+                f"step alone peaks at"))
+            print(color("red",
+                f"         ~9 GB transient as both 2.2 GB tarballs are downloaded "
+                f"+ extracted in parallel)."))
             print(color("red",
                 "         Free up space and re-run."))
             sys.exit(3)
-        elif free_gb < 12:
+        elif free_gb < 14:
             print(color("yellow",
                 f"  WARNING: only {free_gb:.1f} GB free in {ROOT.drive or '/'}. "
-                f"~12 GB recommended"))
+                f"~14 GB recommended"))
             print(color("yellow",
-                "  (torch wheel + ~5 GB HF model cache + ~2 GB frontend build). "
-                "Setup may run slowly."))
+                "  (cu128 torch wheel + ~9 GB peak during R2 mirror extract + "
+                "frontend build)."))
         else:
             print(color("dim", f"  disk: {free_gb:.0f} GB free ✓"))
     except Exception:  # noqa: BLE001
@@ -429,9 +435,17 @@ def _ignore_patterns_for(model_id: str) -> list[str]:
 
 
 def _has_weights_in_cache(model_id: str) -> bool:
-    """Verify a usable weights file landed in the local cache after a
-    snapshot_download. Returns False if neither `model.safetensors` nor
-    `pytorch_model.bin` is present in any snapshot."""
+    """Verify a usable cache landed for `model_id` — i.e., AT LEAST ONE
+    weight file PLUS the small auxiliary files transformers needs to load
+    the model.
+
+    Catches the failure mode where a truncated R2 tarball lands the big
+    weight blob (early in the archive) but loses small tail files
+    (`tokenizer.json`, `config.json`, `sentencepiece.bpe.model`) — which
+    a weights-only check would happily pass, only for warm-up to crash
+    later with an opaque transformers tokenizer error. The whole point
+    of this verifier is to fail loud HERE.
+    """
     try:
         from huggingface_hub import scan_cache_dir  # noqa: PLC0415
     except ImportError:
@@ -440,12 +454,16 @@ def _has_weights_in_cache(model_id: str) -> bool:
         info = scan_cache_dir()
     except Exception:  # noqa: BLE001
         return True
+    needed_weights = {"model.safetensors", "pytorch_model.bin"}
+    needed_aux = {"tokenizer.json", "config.json", "sentencepiece.bpe.model"}
     for repo in info.repos:
         if repo.repo_id != model_id:
             continue
         for rev in repo.revisions:
             names = {f.file_name for f in rev.files}
-            if "model.safetensors" in names or "pytorch_model.bin" in names:
+            has_weight = bool(names & needed_weights)
+            has_all_aux = needed_aux.issubset(names)
+            if has_weight and has_all_aux:
                 return True
     return False
 

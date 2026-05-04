@@ -27,7 +27,7 @@ import {
   Play,
   Upload,
 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import {
   avgLatency,
@@ -55,6 +55,11 @@ export function EvalPanel() {
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Abort the in-flight /judge_search loop if the user navigates away or
+  // collapses the panel mid-run. Without this the for-loop in `run()`
+  // keeps firing requests after unmount.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const reset = () => {
     setItems(null);

@@ -24,7 +24,8 @@ Scored locally with the organisers' [`eval_script.py`](eval_script.py).
 > | --- | ---: | ---: | ---: | ---: |
 > | **RTX 5060 Ti (16 GB)** — dev rig | 25 (full) | 100% | 0.9333 | **0.45 s** |
 > | **RTX 2080 (8 GB)** — judges' rig (per organiser) | 25 (full) | 100%¹ | 0.9333¹ | **~0.7 s¹** |
-> | **GTX 1650 (4 GB) / CPU-only torch** | 3 (auto-clamped) | 100% | 0.9500 | **3.71 s** |
+> | **GTX 1650 (4 GB) — GPU torch (cu128)** | 10 (auto-clamped) | 100% | 0.9333 | **1.06 s** |
+> | **GTX 1650 (4 GB) — CPU torch fallback** | 3 (auto-clamped) | 100% | 0.9500 | **3.71 s** |
 >
 > ¹ projected from RTX 5060 Ti results — same pipeline + same pool=25, RTX 2080 ≈ 1.5× slower than 5060 Ti on transformer inference. Still 7× under the 5 s rulebook target.
 >
@@ -150,7 +151,7 @@ If you'd rather run the steps individually, §2.2–§2.5 below walks through th
 * **Python 3.10–3.12** (validated). 3.13 may work; 3.14+ has incomplete ML-wheel coverage (numpy 2.2.6 / torch 2.11.0 don't yet ship Python 3.14 wheels — `setup.py` will warn).
 * **Node.js ≥ 20.10** (Next.js 16 requires it). The frontend's `npm install` in `start.py` will pull what's needed.
 * **NVIDIA GPU with driver ≥ 555** (optional but recommended). `setup.py` auto-detects via `nvidia-smi` and installs the `cu128` torch wheel — covers Turing / Ampere / Ada / Hopper / Blackwell (RTX 20-50xx). On a CPU-only box the CPU torch wheel installs instead and the auto-clamp ladder shrinks the rerank pool to keep per-query latency under target.
-* **Disk ~10 GB free** (venv + HuggingFace model cache + pip wheel cache).
+* **Disk ~14 GB free** — peak transient: venv + cu128 torch wheel + ~9 GB during the R2-mirror extract step (both 2.2 GB tarballs downloaded + extracted in parallel before temp cleanup) + npm + frontend build. `setup.py` hard-fails at <8 GB and warns at <14 GB.
 * **Internet** for first-time setup (HF model download, pip / npm packages). `inference.py` is fully offline once the cache is warm.
 
 ### 2.2 Install
@@ -206,8 +207,8 @@ Output schema (matches the organisers' `sample_output.json` exactly):
     "id": "PUB-01",
     "query": "We are a small enterprise manufacturing 33 Grade Ordinary Portland Cement...",
     "expected_standards": ["IS 269: 1989"],
-    "retrieved_standards": ["IS 269: 1989", "IS 8043: 1991", "IS 12269: 1987", "IS 8112: 1989", "IS 12330: 1988"],
-    "latency_seconds": 0.742
+    "retrieved_standards": ["IS 269: 1989", "IS 455: 1989", "IS 8043: 1991", "IS 1489 (Part 1): 1991", "IS 8112: 1989"],
+    "latency_seconds": 0.57
   }
 ]
 ```

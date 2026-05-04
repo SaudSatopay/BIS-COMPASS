@@ -29,29 +29,41 @@ function withExpected(records: EvalRecord[]): EvalRecord[] {
 
 /**
  * Hit Rate @3, expressed as a percentage 0–100.
- * Returns null if no record has expected_standards (nothing to score).
+ *
+ * Mirrors eval_script.py exactly: divides hits by **total queries**
+ * (not just those with expected_standards), so a partially-labelled
+ * test set displays the same percentage in this UI as `eval_script.py
+ * --results <download>` would print on the CLI.
+ *
+ * Returns null only when there are zero records OR when not a single
+ * record has expected_standards (in which case any number we return
+ * would print as 0% and confuse a judge who'd misread that as
+ * "system failed").
  */
 export function hitAt3(records: EvalRecord[]): number | null {
-  const scored = withExpected(records);
-  if (scored.length === 0) return null;
+  if (records.length === 0) return null;
+  if (withExpected(records).length === 0) return null;
   let hits = 0;
-  for (const r of scored) {
+  for (const r of records) {
     const expected = new Set((r.expected_standards || []).map(normalize));
+    if (expected.size === 0) continue; // record contributes 0 to numerator
     const top3 = (r.retrieved_standards || []).slice(0, 3).map(normalize);
     if (top3.some((s) => expected.has(s))) hits++;
   }
-  return (hits / scored.length) * 100;
+  return (hits / records.length) * 100;
 }
 
 /**
- * Mean Reciprocal Rank @5. Returns null if no record has expected_standards.
+ * Mean Reciprocal Rank @5. Same parity rule as hitAt3 — denominator is
+ * total queries, matching eval_script.py.
  */
 export function mrrAt5(records: EvalRecord[]): number | null {
-  const scored = withExpected(records);
-  if (scored.length === 0) return null;
+  if (records.length === 0) return null;
+  if (withExpected(records).length === 0) return null;
   let sum = 0;
-  for (const r of scored) {
+  for (const r of records) {
     const expected = new Set((r.expected_standards || []).map(normalize));
+    if (expected.size === 0) continue;
     const top5 = (r.retrieved_standards || []).slice(0, 5).map(normalize);
     let mrr = 0;
     for (let rank = 0; rank < top5.length; rank++) {
@@ -62,7 +74,7 @@ export function mrrAt5(records: EvalRecord[]): number | null {
     }
     sum += mrr;
   }
-  return sum / scored.length;
+  return sum / records.length;
 }
 
 /**

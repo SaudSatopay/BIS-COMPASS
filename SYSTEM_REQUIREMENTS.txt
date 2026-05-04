@@ -72,11 +72,15 @@ HARDWARE
             * GTX 1650      4 GB (CPU torch fallback): Hit@3 100% / MRR 0.95 / 3.71 s
             * Pure CPU (i5+ class)                 : Hit@3 100% / MRR 0.95 / ~3-4 s
 
-  Disk:   ~10 GB free for:
+  Disk:   ~14 GB free (PEAK transient during the R2 mirror extract):
             * Python virtual environment           ~1 GB
-            * HuggingFace model cache              ~5 GB (bge-m3 + bge-reranker-v2-m3)
-            * pip wheel cache (torch CUDA wheel)   ~3 GB
+            * pip wheel cache (cu128 torch wheel)  ~3 GB
+            * HuggingFace model cache (final)      ~5 GB (bge-m3 + bge-reranker)
+            * R2 mirror peak transient             ~5 GB (both 2.2 GB tarballs in
+                                                          /tmp + extract, before
+                                                          tempdir cleanup)
             * Repo + indices + node_modules        ~1 GB
+          setup.py hard-fails at <8 GB free and warns at <14 GB.
 
 
 NETWORK
